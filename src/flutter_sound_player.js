@@ -18,7 +18,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const PLAYER_VERSION = '9.17.8'
+const PLAYER_VERSION = '9.18.0'
 
 function newPlayerInstance(aCallback, callbackTable) { return new FlutterSoundPlayer(aCallback, callbackTable); }
 
