@@ -274,6 +274,8 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   }
 
 
+*/
+
   Future<void> startRecorderToStream(
     FlutterSoundRecorderCallback callback, {
     //String? path,
@@ -289,6 +291,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     int bufferSize = 8192,
     bool enableVoiceProcessing = false,
   }) async {
+    /*
     if (codec != Codec.pcm16 && codec != Codec.pcmFloat32) {
       return startRecorderToStreamCodec(
         callback,
@@ -304,10 +307,13 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
         bufferSize: bufferSize,
       );
     }
+    
+     */
     if (toStream != null) {
       numChannels = 1;
     }
     callback.log(Level.debug, 'Start Recorder to Stream');
+    /*
     AudioDestinationNode dest = audioCtx!.destination!;
     final html.MediaStream stream = await html.window.navigator.mediaDevices!
         .getUserMedia({'video': false, 'audio': true});
@@ -358,9 +364,9 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
 //    callback.log(Level.debug, 'audio event ');
     source!.connectNode(audioProcessor!);
     audioProcessor!.connectNode(dest); // Why is it necessary ?
+     */
     callback.startRecorderCompleted(RecorderState.isRecording.index, true);
   }
-*/
 
   @override
   Future<void> startRecorder(
@@ -379,7 +385,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     bool enableVoiceProcessing = false,
   }) async {
     mediaRecorderWeb = null;
-    /*
+
     if (toStream != null || toStreamFloat32 != null || toStreamInt16 != null) {
       return startRecorderToStream(
         callback,
@@ -393,7 +399,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
         numChannels: numChannels,
         bufferSize: bufferSize,
       );
-    } else */
+    } else
     {
       assert(codec != Codec.pcmFloat32 && codec != Codec.pcm16);
       getWebSession(callback)!.startRecorder(
