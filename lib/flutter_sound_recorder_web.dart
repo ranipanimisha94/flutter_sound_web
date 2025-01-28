@@ -399,8 +399,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
         numChannels: numChannels,
         bufferSize: bufferSize,
       );
-    } else
-    {
+    } else {
       assert(codec != Codec.pcmFloat32 && codec != Codec.pcm16);
       getWebSession(callback)!.startRecorder(
         path,

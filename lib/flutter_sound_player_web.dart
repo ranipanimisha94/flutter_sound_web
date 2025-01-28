@@ -23,7 +23,7 @@ library flutter_sound;
 
 import 'dart:async';
 //import 'dart:html' as html;
-import 'dart:typed_data' show Uint8List;
+import 'dart:typed_data' show Uint8List, Float32List, Int16List;
 
 //import 'package:meta/meta.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
@@ -72,8 +72,18 @@ class FlutterSoundPlayer {
       String? fromURI, int? numChannels, int? sampleRate, int? bufferSize);
 
   @JS('feed')
-  external int feed(
+  external Future<int> feed(
     Uint8List? data,
+  );
+
+  @JS('feedFloat32')
+  external Future<int> feedFloat32(
+    List<Float32List>? data,
+  );
+
+  @JS('feedInt16')
+  external Future<int> feedInt16(
+    List<Int16List>? data,
   );
 
   @JS('startPlayerFromTrack')
@@ -299,6 +309,7 @@ class FlutterSoundPlayerWeb
       Uint8List? fromDataBuffer,
       String? fromURI,
       int? numChannels,
+      bool interleaved = true,
       int? sampleRate,
       int bufferSize = 8192}) async {
     // startPlayerCompleter = new Completer<Map>();
@@ -354,6 +365,22 @@ class FlutterSoundPlayerWeb
     FlutterSoundPlayerCallback callback,
   ) async {
     return getWebSession(callback)!.stopPlayer();
+  }
+
+  @override
+  Future<int> feedFloat32(
+    FlutterSoundPlayerCallback callback, {
+    required List<Float32List> data,
+  }) {
+    return getWebSession(callback)!.feedFloat32(data);
+  }
+
+  @override
+  Future<int> feedInt16(
+    FlutterSoundPlayerCallback callback, {
+    required List<Int16List> data,
+  }) {
+    return getWebSession(callback)!.feedInt16(data);
   }
 
   @override
