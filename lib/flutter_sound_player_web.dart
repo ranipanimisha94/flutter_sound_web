@@ -32,6 +32,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 //import 'dart:io';
 import 'package:js/js.dart';
 import 'package:logger/logger.dart' show Level;
+import 'flutter_sound_media_player_web.dart';
 
 // ====================================  JS  =======================================================
 
@@ -214,7 +215,8 @@ class FlutterSoundPlayerWeb
   static void registerWith(Registrar registrar) {
     FlutterSoundPlayerPlatform.instance = FlutterSoundPlayerWeb();
   }
-
+  FlutterSoundMediaPlayerWeb? _mediaPlayerWeb;
+  
   /* ctor */ MethodChannelFlutterSoundPlayer() {}
 
 //============================================ Session manager ===================================================================
@@ -342,6 +344,7 @@ class FlutterSoundPlayerWeb
   }
 
   @override
+  @deprecated
   Future<int> startPlayerFromMic(
     FlutterSoundPlayerCallback callback, {
     int? numChannels,
@@ -353,6 +356,30 @@ class FlutterSoundPlayerWeb
   }
 
   @override
+  Future<int> startPlayerFromStream(
+      FlutterSoundPlayerCallback callback,
+      {
+        Codec codec = Codec.pcm16,
+        bool interleaved = true,
+        int numChannels = 1,
+        int sampleRate = 16000,
+        int bufferSize = 8192,
+        //TWhenFinished? whenFinished,
+      }) {
+    _mediaPlayerWeb = FlutterSoundMediaPlayerWeb();
+    return _mediaPlayerWeb!.startPlayerFromStream(
+      callback,
+      
+      codec: codec,
+      interleaved: interleaved,
+      numChannels: numChannels,
+      sampleRate: sampleRate,
+      bufferSize: bufferSize
+    );
+
+  }
+
+    @override
   Future<int> feed(
     FlutterSoundPlayerCallback callback, {
     Uint8List? data,

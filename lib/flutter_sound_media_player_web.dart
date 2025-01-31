@@ -20,7 +20,7 @@
 
 import 'dart:async';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
-import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
+import 'package:flutter_sound_platform_interface/flutter_sound_player_platform_interface.dart';
 //import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
@@ -38,7 +38,8 @@ import 'package:tau_web/tau_web.dart';
 import 'package:etau/etau.dart';
 
 
-class FlutterSoundMediaRecorderWeb {
+class FlutterSoundMediaPlayerWeb {
+  /*
   //StreamSubscription<Event>? sub;
   //web.MediaRecorder? mediaRecorder;
   ///StreamSink<Uint8List>? streamSink;
@@ -348,3 +349,18 @@ void resume(web.Event event) {
   callback!.log(Level.debug, 'resume');
 }
 */
+*/
+    Future<int> startPlayerFromStream(
+        FlutterSoundPlayerCallback callback,
+        {
+            Codec codec = Codec.pcm16,
+            bool interleaved = true,
+            int numChannels = 1,
+            int sampleRate = 16000,
+            int bufferSize = 8192,
+            //TWhenFinished? whenFinished,
+        }) async {
+        return -1;
+    }
+
+    }
