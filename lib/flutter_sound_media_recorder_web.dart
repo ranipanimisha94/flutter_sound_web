@@ -31,8 +31,8 @@ import 'package:web/web.dart' as web;
 //import 'dart:web_audio';
 //import 'flutter_sound_recorder_web.dart';
 //import 'dart:js';
-import 'flutter_sound_web.dart' show mime_types;
-import 'dart:js_interop';
+//import 'flutter_sound_web.dart' show mime_types;
+//import 'dart:js_interop';
 //import 'flutter_sound_web.dart';
 import 'package:tau_web/tau_web.dart';
 import 'package:etau/etau.dart';
@@ -133,7 +133,7 @@ class FlutterSoundMediaRecorderWeb {
     var mic = audioCtx!.createMediaStreamSource(mediaStream);
     //pannerNode = audioCtx!.createStereoPanner();
     //pannerNode!.pan.value = pannerValue;
-    mic.connect(streamNode!);
+    mic.connect(streamNode);
     //pannerNode!.connect(dest!);
 
     //streamNode!.start();

@@ -25,15 +25,15 @@ import 'package:flutter_sound_platform_interface/flutter_sound_player_platform_i
 //import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
-import 'package:web/web.dart' as web;
+//import 'package:web/web.dart' as web;
 //import 'dart:html';
 //import 'package:js/js.dart' as js;
 //import 'dart:html' as html;
 //import 'dart:web_audio';
 //import 'flutter_sound_recorder_web.dart';
 //import 'dart:js';
-import 'flutter_sound_web.dart' show mime_types;
-import 'dart:js_interop';
+//import 'flutter_sound_web.dart' show mime_types;
+//import 'dart:js_interop';
 //import 'flutter_sound_web.dart';
 import 'package:tau_web/tau_web.dart';
 import 'package:etau/etau.dart';

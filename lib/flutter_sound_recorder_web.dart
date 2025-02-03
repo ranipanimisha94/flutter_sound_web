@@ -27,9 +27,9 @@ import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
-import 'dart:html';
+//import 'dart:html';
 import 'package:js/js.dart';
-import 'flutter_sound_web.dart';
+//import 'flutter_sound_web.dart';
 //import 'dart:html' as html;
 //import 'dart:web_audio';
 import 'flutter_sound_media_recorder_web.dart';
