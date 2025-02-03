@@ -37,7 +37,6 @@ import 'dart:js_interop';
 import 'package:tau_web/tau_web.dart';
 import 'package:etau/etau.dart';
 
-
 class FlutterSoundMediaRecorderWeb {
   //StreamSubscription<Event>? sub;
   //web.MediaRecorder? mediaRecorder;
@@ -52,27 +51,25 @@ class FlutterSoundMediaRecorderWeb {
   // The Audio Context
   AudioContext? audioCtx;
 
-
   Future<void> startRecorderToStream(
-      FlutterSoundRecorderCallback callback, {
-        //String? path,
-        required Codec codec,
-        StreamSink<Uint8List>? toStream,
-        StreamSink<List<Float32List>>? toStreamFloat32,
-        StreamSink<List<Int16List>>? toStreamInt16,
-        AudioSource? audioSource,
-        Duration timeSlice = Duration.zero,
-        int sampleRate = 16000,
-        int numChannels = 1,
-        int bitRate = 16000,
-        int bufferSize = 8192,
-        bool enableVoiceProcessing = false,
-      }) async {
-
-     this.callback = callback;
-     this.toStream = toStream;
-     this.toStreamFloat32 = toStreamFloat32;
-     this.toStreamInt16 = toStreamInt16;
+    FlutterSoundRecorderCallback callback, {
+    //String? path,
+    required Codec codec,
+    StreamSink<Uint8List>? toStream,
+    StreamSink<List<Float32List>>? toStreamFloat32,
+    StreamSink<List<Int16List>>? toStreamInt16,
+    AudioSource? audioSource,
+    Duration timeSlice = Duration.zero,
+    int sampleRate = 16000,
+    int numChannels = 1,
+    int bitRate = 16000,
+    int bufferSize = 8192,
+    bool enableVoiceProcessing = false,
+  }) async {
+    this.callback = callback;
+    this.toStream = toStream;
+    this.toStreamFloat32 = toStreamFloat32;
+    this.toStreamInt16 = toStreamInt16;
     /*
     if (codec != Codec.pcm16 && codec != Codec.pcmFloat32) {
       return _startRecorderToStreamCodec(
@@ -91,8 +88,7 @@ class FlutterSoundMediaRecorderWeb {
     }
 
      */
-    
-     
+
     //if (toStream != null) {
     //numChannels = 1;
     //}
@@ -101,7 +97,8 @@ class FlutterSoundMediaRecorderWeb {
     assert(audioCtx == null);
 
     audioCtx = tau().newAudioContext();
-    await audioCtx!.audioWorklet.addModule("./assets/packages/tau_web/assets/js/async_processor.js");
+    await audioCtx!.audioWorklet
+        .addModule("./assets/packages/tau_web/assets/js/async_processor.js");
     //audioBuffer = await loadAudio();
     //ByteData asset = await rootBundle.load(pcmAsset);
 
@@ -114,25 +111,23 @@ class FlutterSoundMediaRecorderWeb {
       numberOfOutputs: 0,
       outputChannelCount: [],
     );
-    var streamNode = tau().newAsyncWorkletNode(audioCtx!, "async-processor-1", opt);
+    var streamNode =
+        tau().newAsyncWorkletNode(audioCtx!, "async-processor-1", opt);
     //source = audioCtx!.createBufferSource();
     //source!.buffer = audioBuffer;
-    streamNode.onReceiveData(
-            (int inputNo, List<Float32List> data)
-        {
-          //streamNode.send(outputNo: inputNo, data: data);
-          // Add to stream sink!
-          if (data.length > 0) {
-            toStreamFloat32!.add(data);
-          }
-        });
-    streamNode.onBufferUnderflow( (int outputNo){
+    streamNode.onReceiveData((int inputNo, List<Float32List> data) {
+      //streamNode.send(outputNo: inputNo, data: data);
+      // Add to stream sink!
+      if (data.length > 0) {
+        toStreamFloat32!.add(data);
+      }
+    });
+    streamNode.onBufferUnderflow((int outputNo) {
       //hitStopButton();
       tau().logger().d('onBufferUnderflow($outputNo)');
-    }   );
+    });
     //source!.onended = hitStopButton;
     //streamNode.connect(audioCtx!.destination);
-
 
     var mediaStream = await tau().getDevices().getUserMedia();
     var mic = audioCtx!.createMediaStreamSource(mediaStream);
@@ -198,15 +193,11 @@ class FlutterSoundMediaRecorderWeb {
     callback.startRecorderCompleted(RecorderState.isRecording.index, true);
   }
 
-
-  
   void requestData(
-    //FlutterSoundRecorderCallback callback,
-  ) {
+      //FlutterSoundRecorderCallback callback,
+      ) {
     callback!.log(Level.debug, 'requestData');
   }
-  
-   
 
   void error(web.Event event) {
     callback!.log(Level.debug, 'error');
@@ -224,7 +215,7 @@ class FlutterSoundMediaRecorderWeb {
     audioCtx = null;
   }
 */
-  
+
   /*
   void start(web.Event event) {
     callback!.log(Level.debug, 'start');
@@ -240,7 +231,6 @@ class FlutterSoundMediaRecorderWeb {
   
    */
 
-  
   /*
   void dataAvailable(web.Event event) async {
     if (event is web.BlobEvent) {
@@ -303,8 +293,8 @@ class FlutterSoundMediaRecorderWeb {
    */
 
   Future<void> stopRecorder(
-    //FlutterSoundRecorderCallback callback,
-  ) async {
+      //FlutterSoundRecorderCallback callback,
+      ) async {
     //mediaRecorder!.requestData();
     //mediaRecorder!.stop();
     callback!.log(Level.debug, 'stop');
@@ -315,22 +305,18 @@ class FlutterSoundMediaRecorderWeb {
     // mic.disconnect();
     audioCtx?.close();
     audioCtx = null;
-
   }
-  
-  
 
   Future<void> pauseRecorder(
-    //FlutterSoundRecorderCallback callback,
-  ) async {
+      //FlutterSoundRecorderCallback callback,
+      ) async {
     //mediaRecorder!.pause();
     callback!.log(Level.debug, 'pauseRecorder');
-
   }
 
   Future<void> resumeRecorder(
-    //FlutterSoundRecorderCallback callback,
-  ) async {
+      //FlutterSoundRecorderCallback callback,
+      ) async {
     //mediaRecorder!.resume();
     callback!.log(Level.debug, 'pauseRecorder');
   }

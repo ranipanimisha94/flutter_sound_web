@@ -215,8 +215,9 @@ class FlutterSoundPlayerWeb
   static void registerWith(Registrar registrar) {
     FlutterSoundPlayerPlatform.instance = FlutterSoundPlayerWeb();
   }
+
   FlutterSoundMediaPlayerWeb? _mediaPlayerWeb;
-  
+
   /* ctor */ MethodChannelFlutterSoundPlayer() {}
 
 //============================================ Session manager ===================================================================
@@ -357,49 +358,59 @@ class FlutterSoundPlayerWeb
 
   @override
   Future<int> startPlayerFromStream(
-      FlutterSoundPlayerCallback callback,
-      {
-        Codec codec = Codec.pcm16,
-        bool interleaved = true,
-        int numChannels = 1,
-        int sampleRate = 16000,
-        int bufferSize = 8192,
-        //TWhenFinished? whenFinished,
-      }) {
-    _mediaPlayerWeb = FlutterSoundMediaPlayerWeb();
-    return _mediaPlayerWeb!.startPlayerFromStream(
-      callback,
-      
-      codec: codec,
-      interleaved: interleaved,
-      numChannels: numChannels,
-      sampleRate: sampleRate,
-      bufferSize: bufferSize
-    );
-
-  }
-
-    @override
-  Future<int> feed(
     FlutterSoundPlayerCallback callback, {
-    Uint8List? data,
-  }) async {
-    return getWebSession(callback)!.feed(data);
+    Codec codec = Codec.pcm16,
+    bool interleaved = true,
+    int numChannels = 1,
+    int sampleRate = 16000,
+    int bufferSize = 8192,
+    //TWhenFinished? whenFinished,
+  }) {
+    _mediaPlayerWeb = FlutterSoundMediaPlayerWeb();
+    return _mediaPlayerWeb!.startPlayerFromStream(callback,
+        codec: codec,
+        interleaved: interleaved,
+        numChannels: numChannels,
+        sampleRate: sampleRate,
+        bufferSize: bufferSize);
   }
 
   @override
   Future<int> stopPlayer(
     FlutterSoundPlayerCallback callback,
   ) async {
-    return getWebSession(callback)!.stopPlayer();
+    if (_mediaPlayerWeb != null) {
+      var r = _mediaPlayerWeb!.stopPlayer();
+      _mediaPlayerWeb = null;
+      return r;
+    } else {
+      return getWebSession(callback)!.stopPlayer();
+    }
   }
 
+  @override
+  Future<int> feed(
+    FlutterSoundPlayerCallback callback, {
+    required Uint8List data,
+  }) async {
+    if (_mediaPlayerWeb != null) {
+      return _mediaPlayerWeb!.feed(data: data);
+    } else {
+      return getWebSession(callback)!.feed(data);
+    }
+  }
+
+  // Return the length sent
   @override
   Future<int> feedFloat32(
     FlutterSoundPlayerCallback callback, {
     required List<Float32List> data,
   }) {
-    return getWebSession(callback)!.feedFloat32(data);
+    if (_mediaPlayerWeb != null) {
+      return _mediaPlayerWeb!.feedFloat32(data: data);
+    } else {
+      return getWebSession(callback)!.feedFloat32(data);
+    }
   }
 
   @override
@@ -407,21 +418,33 @@ class FlutterSoundPlayerWeb
     FlutterSoundPlayerCallback callback, {
     required List<Int16List> data,
   }) {
-    return getWebSession(callback)!.feedInt16(data);
+    if (_mediaPlayerWeb != null) {
+      return _mediaPlayerWeb!.feedInt16(data: data);
+    } else {
+      return getWebSession(callback)!.feedInt16(data);
+    }
   }
 
   @override
   Future<int> pausePlayer(
     FlutterSoundPlayerCallback callback,
   ) async {
-    return getWebSession(callback)!.pausePlayer();
+    if (_mediaPlayerWeb != null) {
+      return _mediaPlayerWeb!.pausePlayer();
+    } else {
+      return getWebSession(callback)!.pausePlayer();
+    }
   }
 
   @override
   Future<int> resumePlayer(
     FlutterSoundPlayerCallback callback,
   ) async {
-    return getWebSession(callback)!.resumePlayer();
+    if (_mediaPlayerWeb != null) {
+      return _mediaPlayerWeb!.resumePlayer();
+    } else {
+      return getWebSession(callback)!.resumePlayer();
+    }
   }
 
   @override
@@ -431,18 +454,30 @@ class FlutterSoundPlayerWeb
   }
 
   Future<int> setVolume(FlutterSoundPlayerCallback callback,
-      {double? volume}) async {
-    return getWebSession(callback)!.setVolume(volume);
+      {required double volume}) async {
+    if (_mediaPlayerWeb != null) {
+      return _mediaPlayerWeb!.setVolume(volume: volume);
+    } else {
+      return getWebSession(callback)!.setVolume(volume);
+    }
   }
 
   Future<int> setVolumePan(FlutterSoundPlayerCallback callback,
       {double? volume, double? pan}) async {
-    return getWebSession(callback)!.setVolumePan(volume, pan);
+    if (_mediaPlayerWeb != null) {
+      return _mediaPlayerWeb!.setVolumePan(volume: volume, pan: pan);
+    } else {
+      return getWebSession(callback)!.setVolumePan(volume, pan);
+    }
   }
 
   Future<int> setSpeed(FlutterSoundPlayerCallback callback,
       {required double speed}) async {
-    return getWebSession(callback)!.setSpeed(speed);
+    if (_mediaPlayerWeb != null) {
+      return _mediaPlayerWeb!.setSpeed(speed: speed);
+    } else {
+      return getWebSession(callback)!.setSpeed(speed);
+    }
   }
 
   Future<String> getResourcePath(

@@ -37,7 +37,6 @@ import 'flutter_sound_media_recorder_web.dart';
 //import 'package:tau_web/tau_web.dart';
 //import 'package:etau/etau.dart';
 
-
 //========================================  JS  ===============================================================
 
 @JS('newRecorderInstance')
@@ -152,10 +151,8 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   // The Audio Context
   //AudioContext? audioCtx;
 
-
   // The three nodes
   //AudioBufferSourceNode? source;
-
 
 //================================================================================================================
 
@@ -185,9 +182,8 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     return r;
 
  */
-  return true; // TODO
+    return true; // TODO
   }
-
 
   @override
   void requestData(
@@ -460,7 +456,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
         sampleRate: sampleRate,
         numChannels: numChannels,
         bufferSize: bufferSize,
-      );/*
+      ); /*
       return startRecorderToStream(
         callback,
         codec: codec!,
