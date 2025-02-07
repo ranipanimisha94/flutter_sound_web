@@ -18,7 +18,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const RECORDER_VERSION = '9.21.1'
+const RECORDER_VERSION = '9.22.0'
 
 const IS_RECORDER_PAUSED = 1;
 const IS_RECORDER_RECORDING = 2;
@@ -77,7 +77,6 @@ class FlutterSoundRecorder {
                 this.deleteObjects();
                 this.localObjects = [];
 
-                //this.callbackTable[CB_closeRecorderCompleted](this.callback, IS_RECORDER_STOPPED, true);
                 this.callbackTable[CB_recorder_log](this.callback, DBG, 'JS:<--- releaseFlautoRecorder');
         }
 
@@ -86,6 +85,10 @@ class FlutterSoundRecorder {
                 this.callbackTable[CB_recorder_log](this.callback, DBG, 'setAudioFocus');
         }
 
+
+        isEncoderSupported(codec,) {
+                return true; // TODO
+        }
 
         setSubscriptionDuration(duration) {
                 this.callbackTable[CB_recorder_log](this.callback, DBG, 'setSubscriptionDuration');
@@ -174,8 +177,6 @@ class FlutterSoundRecorder {
 
         async startRecorder(path, sampleRate, numChannels, bitRate, bufferSize, enableVoiceProcessing ,codec, toStream, audioSource) {
                 this.callbackTable[CB_recorder_log](this.callback, DBG, 'startRecorder');
-                //var constraints = { audio: true};
-                //var chunks ;//= [];
                 var me = this;
                 this.currentRecordPath = path;
                 var chunks = [];
@@ -203,36 +204,6 @@ class FlutterSoundRecorder {
                 }
 
 
-                //navigator.mediaDevices.getUserMedia(constraints).then
-                //(function(mediaStream)
-                //{
-                /*
-                        var audioCtx = new AudioContext();
-
-
-                        var source = audioCtx.createMediaStreamSource(mediaStream);
-                        //var dest = new audioCtx.createMediaStreamDestination();
-                        var offlineCtx = new OfflineAudioContext(2,44100*40,44100);
-                        var sourceOfflineCtx = offlineCtx.createBufferSource();
-                        //source.connect(sourceOfflineCtx);
-                        //source.connect(offlineCtx.source);
-                        //source.start();
-                        offlineCtx.startRendering().then(function(renderedBuffer)
-                        {
-                                //this.caller.toto(chunks);
-                                onStop(renderedBuffer);
-                        }
-                        ).catch(function(err)
-                        {
-                                // Note: The promise should reject when startRendering is called a second time on an OfflineAudioContext
-                        }
-                        );
-*/
-
-                //       var buffer = audioCtx.createBuffer(numChannels, tenMinutes, sampleRate); // Play back ???
-                //      source.connect(audioCtx.destination); // This ouput to speaker // TODO : not yet supported
-
-
                 // ===========================================================================
 
                 var options =
@@ -240,122 +211,102 @@ class FlutterSoundRecorder {
                         audioBitsPerSecond: bitRate,
                         mimeType: mime_types[codec]
                 }
+                try
+                {
+                        var mediaRecorder = new MediaRecorder(mediaStream, options);
+                        me.mediaRecorder = mediaRecorder;
+                        if (toStream) // not yet implemented !
+                                mediaRecorder.start(30); // 30 milliseconds for a chunk
+                        else
+                                mediaRecorder.start();
+                        me.callbackTable[CB_recorder_log](me.callback, DBG, "recorder started : " + mediaRecorder.state);
 
-                var mediaRecorder = new MediaRecorder(mediaStream, options);
-                me.mediaRecorder = mediaRecorder;
-                if (toStream) // not yet implemented !
-                        mediaRecorder.start(30); // 30 milliseconds for a chunk
-                else
-                        mediaRecorder.start();
-                me.callbackTable[CB_recorder_log](me.callback, DBG, "recorder started : " + mediaRecorder.state);
-
-
-                mediaRecorder.ondataavailable = function (e) {
-                        if (e.data) {
-                                if (toStream) // not yet implemented !
+                        mediaRecorder.ondataavailable = function (e)
+                        {
+                                if (e.data)
                                 {
-                                        me.callbackTable[CB_recordingData](me.callback, e.data);
+                                        if (toStream) // not yet implemented !
+                                        {
+                                                me.callbackTable[CB_recordingData](me.callback, e.data);
 
+                                        }
+                                        if (path != null && path != '') {
+                                                me.callbackTable[CB_recorder_log](me.callback, DBG, 'On data available : ' + e.data.constructor.name);
+                                                chunks.push(e.data);
+                                        }
                                 }
-                                if (path != null && path != '') {
-                                        me.callbackTable[CB_recorder_log](me.callback, DBG, 'On data available : ' + e.data.constructor.name);
-                                        chunks.push(e.data);
-                                }
-                        }
-                }
 
-                mediaRecorder.onstart = function (e) {
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, '---> mediaRecorder OnStart');
-                        me.deltaTime = 0;
-                        me.startTimer();
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, '<---mediaRecorder OnStart : ' + me.mediaRecorder.state);
-                        me.callbackTable[CB_startRecorderCompleted](me.callback, IS_RECORDER_RECORDING, true);
-
-                }
-
-                mediaRecorder.onerror = function (e) {
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, "mediaRecorder OnError : " + e.error);
-                        me.stopRecorder()
-                }
-
-                mediaRecorder.onpause = function (e) {
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, '---> mediaRecorder onpause');
-                        me.callbackTable[CB_pauseRecorderCompleted](me.callback, IS_RECORDER_PAUSED, true);
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, '<--- mediaRecorder onpause');
-                }
-
-                mediaRecorder.onresume = function (e) {
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, '---> mediaRecorder onresume');
-                        me.callbackTable[CB_resumeRecorderCompleted](me.callback, IS_RECORDER_RECORDING, true);
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, '<--- mediaRecorder onresume');
-                }
-
-                mediaRecorder.onstop = function (e) {
-
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, '---> mediaRecorder onstop');
-                        var blob = new Blob(chunks, { 'type': mime_types[codec] });
-                        var url = URL.createObjectURL(blob);
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, 'Instance Number : ' + me.instanceNo.toString())
-
-                        me.setRecordURL(path, url);
-
-                        var found = me.localObjects.findIndex(element => element == path);
-                        if (found != null && found >= 0) {
-                                me.callbackTable[CB_recorder_log](me.callback, DBG, "Found : " + found);
-                                me.localObjects[found] = path;
-                        } else {
-                                me.callbackTable[CB_recorder_log](me.callback, DBG, "NOT FOUND! : " + path);
-                                me.localObjects.push(path);
                         }
 
+                        mediaRecorder.onstart = function (e)
+                        {
+                                try
+                                {
 
-                        /*
-                                                                var xhr = new XMLHttpRequest();
-                                                                var blob;
-                                                                var fileReader = new FileReader();
-                                                                xhr.open("GET", url, true);
-                                                                xhr.responseType = "arraybuffer";
+                                        me.callbackTable[CB_recorder_log](me.callback, DBG, '---> mediaRecorder OnStart');
+                                        me.deltaTime = 0;
+                                        me.startTimer();
+                                        me.callbackTable[CB_recorder_log](me.callback, DBG, '<---mediaRecorder OnStart : ' + me.mediaRecorder.state);
+                                        me.callbackTable[CB_startRecorderCompleted](me.callback, IS_RECORDER_RECORDING, true);
+                               } catch (error)
+                               {
+                                        me.callbackTable[CB_recorder_log](me.callback, ERROR, error.toString());
+                                        me.callbackTable[CB_startRecorderCompleted](me.callback, IS_RECORDER_RECORDING, false);
+                               }
+
+                        }
+
+                        mediaRecorder.onerror = function (e) {
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, "mediaRecorder OnError : " + e.error);
+                                me.stopRecorder()
+                        }
+
+                        mediaRecorder.onpause = function (e) {
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, '---> mediaRecorder onpause');
+                                me.callbackTable[CB_pauseRecorderCompleted](me.callback, IS_RECORDER_PAUSED, true);
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, '<--- mediaRecorder onpause');
+                        }
+
+                        mediaRecorder.onresume = function (e) {
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, '---> mediaRecorder onresume');
+                                me.callbackTable[CB_resumeRecorderCompleted](me.callback, IS_RECORDER_RECORDING, true);
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, '<--- mediaRecorder onresume');
+                        }
+
+                        mediaRecorder.onstop = function (e) {
+
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, '---> mediaRecorder onstop');
+                                var blob = new Blob(chunks, { 'type': mime_types[codec] });
+                                var url = URL.createObjectURL(blob);
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, 'Instance Number : ' + me.instanceNo.toString())
+
+                                me.setRecordURL(path, url);
+
+                                var found = me.localObjects.findIndex(element => element == path);
+                                if (found != null && found >= 0) {
+                                        me.callbackTable[CB_recorder_log](me.callback, DBG, "Found : " + found);
+                                        me.localObjects[found] = path;
+                                } else {
+                                        me.callbackTable[CB_recorder_log](me.callback, DBG, "NOT FOUND! : " + path);
+                                        me.localObjects.push(path);
+                                }
 
 
-                                                                xhr.addEventListener("load", function ()
-                                                                {
-                                                                        if (xhr.status === 200)
-                                                                        {
-                                                                                // Create a blob from the response
-                                                                                blob = new Blob([xhr.response], {type: "audio/webm\;codecs=opus"});
 
-                                                                                // onload needed since Google Chrome doesn't support addEventListener for FileReader
-                                                                                fileReader.onload = function (evt)
-                                                                                {
-                                                                                        // Read out file contents as a Data URL
-                                                                                        var result = evt.target.result;
-                                                                                        // Set image src to Data URL
-                                                                                        //rhino.setAttribute("src", result);
-                                                                                        // Store Data URL in localStorage
-                                                                                        try
-                                                                                        {
-                                                                                                //localStorage.setItem("rhino", result);
-                                                                                                onStop(result);
-                                                                                                myStorage.setItem(path, JSON.stringify(result));
-                                                                                        } catch (e)
-                                                                                        {
-                                                                                        }
-                                                                                };
-                                                                                // Load blob as Data URL
-                                                                                fileReader.readAsDataURL(blob);
-                                                                        }
-                                                                }, false);
-                                                                // Send XHR
-                                                                xhr.send();
-                                */
-                        chunks = null;///[];
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, 'recorder stopped');
-                        me.mediaRecorder = null;
-                        me.callbackTable[CB_stopRecorderCompleted](me.callback, IS_RECORDER_STOPPED, true, me.getRecordURL(path));
+                                chunks = null;///[];
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, 'recorder stopped');
+                                me.mediaRecorder = null;
+                                me.callbackTable[CB_stopRecorderCompleted](me.callback, IS_RECORDER_STOPPED, true, me.getRecordURL(path));
 
-                        me.callbackTable[CB_recorder_log](me.callback, DBG, '<--- mediaRecorder onstop');
+                                me.callbackTable[CB_recorder_log](me.callback, DBG, '<--- mediaRecorder onstop');
+                        }
+
+
+                } catch (error)
+                {
+                        me.callbackTable[CB_recorder_log](me.callback, ERROR, error.toString());
+                        me.callbackTable[CB_startRecorderCompleted](me.callback, IS_RECORDER_RECORDING, false);
                 }
-                //});
         }
 
         stop() {

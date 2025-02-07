@@ -18,7 +18,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const PLAYER_VERSION = '9.21.1'
+const PLAYER_VERSION = '9.22.0'
 
 function newPlayerInstance(aCallback, callbackTable) { return new FlutterSoundPlayer(aCallback, callbackTable); }
 
@@ -49,7 +49,6 @@ class FlutterSoundPlayer {
                 this.howl = null;
                 this.temporaryBlob = null;
                 this.status = IS_PLAYER_STOPPED;
-                //this.deltaTime = 0;
                 this.subscriptionDuration = 0;
                 this.duration = 0;
                 this.instanceNo = instanceNumber;
@@ -58,7 +57,6 @@ class FlutterSoundPlayer {
         }
 
         initializeMediaPlayer(focus, category, mode, audioFlags, device, withUI) {
-                //this.callback.openAudioSessionCompleted(true);
                 this.status = IS_PLAYER_STOPPED;
                 this.callbackTable[CB_openPlayerCompleted](this.callback, this.getPlayerState(), true);
                 return this.getPlayerState();
@@ -66,7 +64,6 @@ class FlutterSoundPlayer {
 
         releaseMediaPlayer() {
                 this.status = IS_PLAYER_STOPPED;
-                //this.callbackTable[CB_closePlayerCompleted](this.callback, this.getPlayerState(), true);
                 return this.getPlayerState();
         }
 
@@ -83,7 +80,7 @@ class FlutterSoundPlayer {
 
                                 onload: function () {
                                         me.callbackTable[CB_player_log](me.callback, DBG, 'onload');
-					me.howl.play();
+					                    me.howl.play();
                                 },
 
                                 onplay: function () {
@@ -104,6 +101,8 @@ class FlutterSoundPlayer {
                                 onplayerror: function () {
                                         me.callbackTable[CB_player_log](me.callback, ERROR, 'onplayerror');
                                         me.stop();
+                                        //me.callbackTable[CB_startPlayerCompleted](me.callback, me.getPlayerState(), false, -1);
+                                        me.callbackTable[CB_startPlayerCompleted](me.callback, me.getPlayerState(), false, -1);
                                 },
 
                                 onend: function () {
@@ -116,6 +115,7 @@ class FlutterSoundPlayer {
                                 onloaderror: function () {
                                         me.callbackTable[CB_player_log](me.callback, ERROR, 'onloaderror');
                                         me.stop()
+                                        me.callbackTable[CB_startPlayerCompleted](me.callback, me.getPlayerState(), false, -1);;
                                 },
 
                                 onpause: function () {
@@ -129,7 +129,7 @@ class FlutterSoundPlayer {
                                         me.callbackTable[CB_player_log](me.callback, DBG, 'onstop');
                                         me.status = IS_PLAYER_STOPPED;
                                         me.howl = null;
-                                        me.callbackTable[CB_stopPlayerCompleted](me.callback, me.getPlayerState(), true);
+                                        //me.callbackTable[CB_stopPlayerCompleted](me.callback, me.getPlayerState(), true);
                                 },
 
                                 onseek: function () {
@@ -149,34 +149,6 @@ class FlutterSoundPlayer {
                 this.callbackTable[CB_player_log](this.callback, DBG, 'JS: <--- playAudioFromURL');
                 return this.getPlayerState();
         }
-
-
-        /* ACTUALLY NOT USED
-                playAudioFromBuffer(dataBuffer) // Actually not used
-                {
-
-                        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                        var source = audioCtx.createBufferSource();
-                        me.callbackTable[CB_player_log](me.callback, DBG, dataBuffer.constructor.name)
-                        audioCtx.decodeAudioData
-                        (
-                                dataBuffer, //dataBuffer.buffer,
-                                function(buffer)
-                                {
-                                        source.buffer = buffer;
-
-                                        source.connect(audioCtx.destination);
-                                        source.loop = false;
-                                           // start the source playing
-                                        source.start();
-                                },
-                                function(e){ me.callbackTable[CB_player_log](me.callback, DBG, "Error with decoding audio data" + e.err); }
-                        );
-                        this.callback.startPlayerCompleted(777);
-                        return 0; // playAudioFromBuffer() does not support sound Duration
-        }
-        */
-
 
 
 
@@ -291,9 +263,9 @@ class FlutterSoundPlayer {
         stopPlayer() {
                 this.callbackTable[CB_player_log](this.callback, DBG, 'JS: ---> stopPlayer');
                 //if (this.howl == null)
-                //this.callbackTable[CB_stopPlayerCompleted](this.callback,  IS_PLAYER_STOPPED, true);
-                if (!this.stop())
-                        this.callbackTable[CB_stopPlayerCompleted](this.callback, this.getPlayerState(), true);
+                if (!this.stop()) {}
+                        //this.callbackTable[CB_stopPlayerCompleted](this.callback, this.getPlayerState(), true);
+                this.callbackTable[CB_stopPlayerCompleted](this.callback,  IS_PLAYER_STOPPED, true);
                 this.callbackTable[CB_player_log](this.callback, DBG, 'JS: <--- stopPlayer');
                 return this.getPlayerState();
         }
@@ -405,9 +377,6 @@ class FlutterSoundPlayer {
                         this.timerId = setInterval
                                 (
                                         function () {
-                                                //var now = new Date().getTime();
-                                                //var distance = now - me.countDownDate;
-                                                //distance += me.deltaTime;
                                                 var pos = Math.floor(me.howl.seek() * 1000);
                                                 if (pos > me.duration)
                                                         pos = me.duration;
@@ -424,9 +393,6 @@ class FlutterSoundPlayer {
                 this.callbackTable[CB_player_log](this.callback, DBG, 'stopTimer()');
                 if (this.timerId != null) {
                         clearInterval(this.timerId);
-                        //var now = new Date().getTime();
-                        //var distance = now - this.countDownDate;
-                        //this.deltaTime += distance;
                         this.timerId = null;
                 }
         }

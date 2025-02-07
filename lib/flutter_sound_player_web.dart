@@ -320,28 +320,17 @@ class FlutterSoundPlayerWeb
     // return  startPlayerCompleter.future ;
     // String s = "https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_700KB.mp3";
     if (codec == null) codec = Codec.defaultCodec;
+
     if (fromDataBuffer != null) {
       if (fromURI != null) {
         throw Exception(
             "You may not specify both 'fromURI' and 'fromDataBuffer' parameters");
       }
-      //js.context.callMethod('playAudioFromBuffer', [fromDataBuffer]);
-      //playAudioFromBuffer(fromDataBuffer);
-      // .......................return getWebSession(callback).playAudioFromBuffer(fromDataBuffer);
-      //playAudioFromBuffer3(fromDataBuffer);
-      //Directory tempDir = await getTemporaryDirectory();
-      /*
-                        String path = defaultExtensions[codec.index];
-                        File filOut = File(path);
-                        IOSink sink = filOut.openWrite();
-                        sink.add(fromDataBuffer.toList());
-                        fromURI = path;
-                         */
     }
-    //js.context.callMethod('playAudioFromURL', [fromURI]);
     callback.log(Level.debug, 'startPlayer FromURI : $fromURI');
-    return getWebSession(callback)!.startPlayer(codec.index, fromDataBuffer,
-        fromURI, numChannels, sampleRate, bufferSize);
+    var r = await getWebSession(callback)!.startPlayer(codec.index,
+        fromDataBuffer, fromURI, numChannels, sampleRate, bufferSize);
+    return r;
   }
 
   @override
@@ -485,11 +474,4 @@ class FlutterSoundPlayerWeb
   ) async {
     return '';
   }
-
-  //@override
-  //Future<void>?   setLogLeve(FlutterSoundPlayerCallback callback, Level loglevel)
-  //{
-  //        return null;
-  //
-  //}
 }
