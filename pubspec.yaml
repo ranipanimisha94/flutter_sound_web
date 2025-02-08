@@ -3,6 +3,8 @@ version: 9.23.0
 description: Flutter plugin that relates to sound like audio and recorder.
 #author: canardoux<larpoux@gmail.com>
 homepage: https://flutter-sound.canardoux.xyz/
+repository: https://github.com/canardoux/flutter_sound_web/
+
 environment:
     sdk: ^3.3.0
     flutter: ">=2.0.0"
