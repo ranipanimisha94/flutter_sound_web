@@ -21,29 +21,22 @@
 import 'dart:async';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
-//import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'dart:typed_data';
+import 'dart:typed_data' as t show Float32List, Uint8List, Int16List, Uint16List;
 import 'package:logger/logger.dart' show Level;
 import 'package:web/web.dart' as web;
-//import 'dart:html';
-//import 'package:js/js.dart' as js;
-//import 'dart:html' as html;
-//import 'dart:web_audio';
-//import 'flutter_sound_recorder_web.dart';
-//import 'dart:js';
-//import 'flutter_sound_web.dart' show mime_types;
-//import 'dart:js_interop';
-//import 'flutter_sound_web.dart';
-import 'package:tau_web/tau_web.dart';
-import 'package:etau/etau.dart';
+//import 'package:tau_web/tau_web.dart';
+//import 'package:etau/etau.dart';
+import 'package:flutter_sound_web/async_worklet_node.dart';
+import 'dart:js_interop';
+import 'package:web/web.dart';
 
 class FlutterSoundMediaRecorderWeb {
   ///StreamSink<Uint8List>? streamSink;
   FlutterSoundRecorderCallback? callback;
 
-  StreamSink<Uint8List>? toStream;
-  StreamSink<List<Float32List>>? toStreamFloat32;
-  StreamSink<List<Int16List>>? toStreamInt16;
+  StreamSink<t.Uint8List>? toStream;
+  StreamSink<List<t.Float32List>>? toStreamFloat32;
+  StreamSink<List<t.Int16List>>? toStreamInt16;
 
   // The Audio Context
   AudioContext? audioCtx;
@@ -51,9 +44,9 @@ class FlutterSoundMediaRecorderWeb {
   Future<void> startRecorderToStream(
     FlutterSoundRecorderCallback callback, {
     required Codec codec,
-    StreamSink<Uint8List>? toStream,
-    StreamSink<List<Float32List>>? toStreamFloat32,
-    StreamSink<List<Int16List>>? toStreamInt16,
+    StreamSink<t.Uint8List>? toStream,
+    StreamSink<List<t.Float32List>>? toStreamFloat32,
+    StreamSink<List<t.Int16List>>? toStreamInt16,
     AudioSource? audioSource,
     Duration timeSlice = Duration.zero,
     int sampleRate = 16000,
@@ -68,34 +61,27 @@ class FlutterSoundMediaRecorderWeb {
     this.toStreamInt16 = toStreamInt16;
 
     callback.log(Level.debug, 'Start Recorder to Stream');
-    await tau().init();
+    await AsyncWorkletNode.init();
     assert(audioCtx == null);
 
-    audioCtx = tau().newAudioContext();
-    await audioCtx!.audioWorklet
-        .addModule("./assets/packages/tau_web/assets/js/async_processor.js");
-
-    AudioWorkletNodeOptions opt = tau().newAudioWorkletNodeOptions(
-      channelCountMode: 'explicit',
-      channelCount: numChannels,
-      numberOfInputs: 1,
-      numberOfOutputs: 0,
-      outputChannelCount: [],
-    );
+    audioCtx = AudioContext();
     var streamNode =
-        tau().newAsyncWorkletNode(audioCtx!, "async-processor-1", opt);
-    streamNode.onReceiveData((int inputNo, List<Float32List> data) {
+        AsyncWorkletNode(audioCtx!, "async-processor-1", channelCount: numChannels, numberOfInputs: 1, numberOfOutputs: 0);
+
+    streamNode.onReceiveData((int inputNo, List<t.Float32List> data) {
       if (data.length > 0) {
         toStreamFloat32!.add(data);
       }
     });
     streamNode.onBufferUnderflow((int outputNo) {
-      tau().logger().d('onBufferUnderflow($outputNo)');
+      //_logger().d('onBufferUnderflow($outputNo)');
     });
 
-    var mediaStream = await tau().getDevices().getUserMedia();
+    var constrains = MediaStreamConstraints(audio: true.toJS, video: false.toJS);
+    MediaDevices mds = web.window.navigator.mediaDevices;
+    var mediaStream = await mds.getUserMedia(constrains).toDart;
     var mic = audioCtx!.createMediaStreamSource(mediaStream);
-    mic.connect(streamNode);
+    mic.connect(streamNode.delegate());
 
     callback.startRecorderCompleted(RecorderState.isRecording.index, true);
   }

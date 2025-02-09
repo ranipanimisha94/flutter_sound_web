@@ -21,22 +21,14 @@
 import 'dart:async';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_player_platform_interface.dart';
-
-//import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'dart:typed_data';
+import 'package:flutter_sound_web/async_worklet_node.dart';
+import 'dart:js_interop';
+import 'package:web/web.dart';
+//import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
-//import 'package:web/web.dart' as web;
-//import 'dart:html';
-//import 'package:js/js.dart' as js;
-//import 'dart:html' as html;
-//import 'dart:web_audio';
-//import 'flutter_sound_recorder_web.dart';
-//import 'dart:js';
-//import 'flutter_sound_web.dart' show mime_types;
-//import 'dart:js_interop';
-//import 'flutter_sound_web.dart';
-import 'package:tau_web/tau_web.dart';
-import 'package:etau/etau.dart';
+import 'dart:typed_data' as t show Float32List, Uint8List, Int16List, Uint16List;
+//import 'package:tau_web/tau_web.dart';
+//import 'package:etau/etau.dart';
 
 class FlutterSoundMediaPlayerWeb {
   AudioContext? audioCtx;
@@ -56,29 +48,17 @@ class FlutterSoundMediaPlayerWeb {
     if (codec == Codec.pcmFloat32 && !interleaved) {
       // Actually this is the only case implemented {
       callback.log(Level.debug, 'Start startPlayerFromStream to Stream');
-      await tau().init();
+      await AsyncWorkletNode.init();
       assert(audioCtx == null);
 
-      audioCtx = tau().newAudioContext();
+      audioCtx = AudioContext();
       await audioCtx!.audioWorklet
-          .addModule("./assets/packages/tau_web/assets/js/async_processor.js");
-      //audioBuffer = await loadAudio();
-      //ByteData asset = await rootBundle.load(pcmAsset);
-
-      //var audioBuffer = await audioCtx!.decodeAudioData( asset.buffer);
-
-      AudioWorkletNodeOptions opt = tau().newAudioWorkletNodeOptions(
-        channelCountMode: 'explicit',
-        channelCount: numChannels,
-        numberOfInputs: 0,
-        numberOfOutputs: 1,
-        outputChannelCount: [numChannels],
-      );
+          .addModule("./assets/packages/tau_web/assets/js/async_processor.js").toDart;
       streamNode =
-          tau().newAsyncWorkletNode(audioCtx!, "async-processor-1", opt);
+          AsyncWorkletNode(audioCtx!, "async-processor-1", channelCount: numChannels, numberOfInputs: 0, numberOfOutputs: 1);
       streamNode!.onBufferUnderflow((int outputNo) {
         callback.needSomeFood(0);
-        tau().logger().d('onBufferUnderflow($outputNo)');
+        //_logger.d('onBufferUnderflow($outputNo)');
       });
 
       streamNode!.connect(audioCtx!.destination);
@@ -96,7 +76,7 @@ class FlutterSoundMediaPlayerWeb {
     // mic.disconnect();
     streamNode?.stop();
     //streamNode?.disconnect();
-    await audioCtx?.close();
+    await audioCtx?.close().toDart;
     audioCtx = null;
     streamNode = null;
     callback!.log(Level.debug, 'stop');
@@ -105,19 +85,19 @@ class FlutterSoundMediaPlayerWeb {
   }
 
   Future<int> feed({
-    required Uint8List data,
+    required t.Uint8List data,
   }) async {
     return -1;
   }
 
   Future<int> feedFloat32({
-    required List<Float32List> data,
+    required List<t.Float32List> data,
   }) async {
     streamNode!.send(outputNo: 0, data: data);
     return 0; // Length written
   }
 
-  Future<int> feedInt16({required List<Int16List> data}) async {
+  Future<int> feedInt16({required List<t.Int16List> data}) async {
     return -1;
   }
 

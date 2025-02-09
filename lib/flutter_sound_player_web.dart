@@ -27,9 +27,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_player_platform_interface.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-
 import 'dart:js_interop';
-
 import 'package:logger/logger.dart' show Level;
 import 'flutter_sound_media_player_web.dart';
 
