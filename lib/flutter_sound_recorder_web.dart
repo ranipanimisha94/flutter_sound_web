@@ -28,10 +28,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
 import 'flutter_sound_media_recorder_web.dart';
-
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
-import 'package:web/web.dart' as w;
 
 //========================================  JS  ===============================================================
 
@@ -178,7 +175,6 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     */
 
     return getWebSession(callback)!.isEncoderSupported(codec.index);
-    return true; // TODO
   }
 
   @override
