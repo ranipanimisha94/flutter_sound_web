@@ -27,24 +27,23 @@ import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
-//import 'dart:html';
-import 'package:js/js.dart';
-//import 'flutter_sound_web.dart';
-//import 'dart:html' as html;
-//import 'dart:web_audio';
 import 'flutter_sound_media_recorder_web.dart';
+
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+import 'package:web/web.dart' as w;
 
 //========================================  JS  ===============================================================
 
 @JS('newRecorderInstance')
 external FlutterSoundRecorder newRecorderInstance(
-    FlutterSoundRecorderCallback callBack, List<Function> callbackTable);
+    JSBoxedDartObject callBack, JSArray<JSExportedDartFunction> callbackTable);
 
-@JS('FlutterSoundRecorder')
-class FlutterSoundRecorder {
-  @JS('newInstance')
-  external static FlutterSoundRecorder newInstance(
-      FlutterSoundRecorderCallback callBack, List<Function> callbackTable);
+@JS()
+extension type FlutterSoundRecorder._(JSObject _) {
+  // @JS('newInstance')
+  // external static FlutterSoundRecorder newInstance(
+  //     FlutterSoundRecorderCallback callBack, List<Function> callbackTable);
 
   @JS('initializeFlautoRecorder')
   external void initializeFlautoRecorder();
@@ -96,33 +95,39 @@ class FlutterSoundRecorder {
   );
 }
 
-List<Function> callbackTable = [
-  allowInterop(
-      (FlutterSoundRecorderCallback cb, int duration, double dbPeakLevel) {
-    cb.updateRecorderProgress(duration: duration, dbPeakLevel: dbPeakLevel);
-  }),
-  allowInterop((FlutterSoundRecorderCallback cb, {Uint8List? data}) {
-    cb.recordingData(data: data);
-  }),
-  allowInterop((FlutterSoundRecorderCallback cb, int state, bool success) {
-    cb.startRecorderCompleted(state, success);
-  }),
-  allowInterop((FlutterSoundRecorderCallback cb, int state, bool success) {
-    cb.pauseRecorderCompleted(state, success);
-  }),
-  allowInterop((FlutterSoundRecorderCallback cb, int state, bool success) {
-    cb.resumeRecorderCompleted(state, success);
-  }),
-  allowInterop(
-      (FlutterSoundRecorderCallback cb, int state, bool success, String url) {
-    cb.stopRecorderCompleted(state, success, url);
-  }),
-  allowInterop((FlutterSoundRecorderCallback cb, int state, bool success) {
-    cb.openRecorderCompleted(state, success);
-  }),
-  allowInterop((FlutterSoundRecorderCallback cb, int level, String msg) {
-    cb.log(Level.values[level], msg);
-  }),
+List<JSExportedDartFunction> callbackTable = [
+  (JSBoxedDartObject cb, int duration, double dbPeakLevel) {
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .updateRecorderProgress(duration: duration, dbPeakLevel: dbPeakLevel);
+  }.toJS,
+  /*
+  (JSBoxedDartObject cb, Uint8List? data) {
+    (cb.toDart as FlutterSoundRecorderCallback).recordingData(data: data);
+  }.toJS,
+   */
+  (JSBoxedDartObject cb, int state, bool success) {
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .startRecorderCompleted(state, success);
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success) {
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .pauseRecorderCompleted(state, success);
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success) {
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .resumeRecorderCompleted(state, success);
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success, String url) {
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .stopRecorderCompleted(state, success, url);
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success) {
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .openRecorderCompleted(state, success);
+  }.toJS,
+  (JSBoxedDartObject cb, int level, String msg) {
+    (cb.toDart as FlutterSoundRecorderCallback).log(Level.values[level], msg);
+  }.toJS,
 ];
 
 //============================================================================================================================
@@ -211,10 +216,11 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     int slotno = findSession(callback);
     if (slotno < _slots.length) {
       assert(_slots[slotno] == null);
-      _slots[slotno] = newRecorderInstance(callback, callbackTable);
+      _slots[slotno] =
+          newRecorderInstance(callback.toJSBox, callbackTable.toJS);
     } else {
       assert(slotno == _slots.length);
-      _slots.add(newRecorderInstance(callback, callbackTable));
+      _slots.add(newRecorderInstance(callback.toJSBox, callbackTable.toJS));
     }
     //audioCtx = AudioContext();
 

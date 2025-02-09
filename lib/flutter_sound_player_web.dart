@@ -22,15 +22,16 @@
 library flutter_sound;
 
 import 'dart:async';
-//import 'dart:html' as html;
 import 'dart:typed_data' show Uint8List, Float32List, Int16List;
 
-//import 'package:meta/meta.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_player_platform_interface.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-//import 'dart:io';
-import 'package:js/js.dart';
+
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+import 'package:web/web.dart' as w;
+
 import 'package:logger/logger.dart' show Level;
 import 'flutter_sound_media_player_web.dart';
 
@@ -38,17 +39,18 @@ import 'flutter_sound_media_player_web.dart';
 
 @JS('newPlayerInstance')
 external FlutterSoundPlayer newPlayerInstance(
-    FlutterSoundPlayerCallback theCallBack, List<Function> callbackTable);
+    JSBoxedDartObject flutterSoundPlayerCallback,
+    JSArray<JSExportedDartFunction> callbackTable);
 
-@JS('FlutterSoundPlayer')
-class FlutterSoundPlayer {
-  @JS('releaseMediaPlayer')
+@JS()
+extension type FlutterSoundPlayer._(JSObject _) {
+  //@JS('releaseMediaPlayer')
   external int releaseMediaPlayer();
 
-  @JS('initializeMediaPlayer')
+  //@JS('initializeMediaPlayer')
   external int initializeMediaPlayer();
 
-  @JS('setAudioFocus')
+  //@JS('setAudioFocus')
   external int setAudioFocus(
     int focus,
     int category,
@@ -57,37 +59,38 @@ class FlutterSoundPlayer {
     int device,
   );
 
-  @JS('getPlayerState')
+  //@JS('getPlayerState')
   external int getPlayerState();
 
-  @JS('isDecoderSupported')
+  //@JS('isDecoderSupported')
   external bool isDecoderSupported(
     int codec,
   );
 
-  @JS('setSubscriptionDuration')
+  //@JS('setSubscriptionDuration')
   external int setSubscriptionDuration(int duration);
 
-  @JS('startPlayer')
-  external int startPlayer(int? codec, Uint8List? fromDataBuffer,
+  //@JS('startPlayer')
+  external int startPlayer(int? codec, JSUint8Array? fromDataBuffer,
       String? fromURI, int? numChannels, int? sampleRate, int? bufferSize);
 
-  @JS('feed')
-  external Future<int> feed(
-    Uint8List? data,
+  //@JS('feed')
+  external int feed(
+    JSUint8Array? data,
   );
 
-  @JS('feedFloat32')
-  external Future<int> feedFloat32(
-    List<Float32List>? data,
+  //@JS('feedFloat32')
+  external int feedFloat32(
+    JSArray<JSUint8Array>? data,
   );
 
-  @JS('feedInt16')
-  external Future<int> feedInt16(
-    List<Int16List>? data,
+  //@JS('feedInt16')
+  external int feedInt16(
+    JSArray<JSUint8Array>? data,
   );
 
-  @JS('startPlayerFromTrack')
+  /*
+  //@JS('startPlayerFromTrack')
   external int startPlayerFromTrack(
     int progress,
     int duration,
@@ -99,7 +102,7 @@ class FlutterSoundPlayer {
     bool removeUIWhenStopped,
   );
 
-  @JS('nowPlaying')
+  //@JS('nowPlaying')
   external int nowPlaying(
     int progress,
     int duration,
@@ -109,77 +112,80 @@ class FlutterSoundPlayer {
     bool? canSkipBackward,
     bool? defaultPauseResume,
   );
-
-  @JS('stopPlayer')
+*/
+  //@JS('stopPlayer')
   external int stopPlayer();
 
-  @JS('resumePlayer')
+  //@JS('resumePlayer')
   external int pausePlayer();
 
-  @JS('')
+  //@JS('')
   external int resumePlayer();
 
-  @JS('seekToPlayer')
+  //@JS('seekToPlayer')
   external int seekToPlayer(int duration);
 
-  @JS('setVolume')
+  ///@JS('setVolume')
   external int setVolume(double? volume);
 
-  @JS('setVolumePan')
+  //@JS('setVolumePan')
   external int setVolumePan(double? volume, double? pan);
 
-  @JS('setSpeed')
+  //@JS('setSpeed')
   external int setSpeed(double speed);
 
-  @JS('setUIProgressBar')
+  //@JS('setUIProgressBar')
   external int setUIProgressBar(int duration, int progress);
 }
 
-List<Function> callbackTable = [
-  allowInterop((FlutterSoundPlayerCallback cb, int position, int duration) {
-    cb.updateProgress(
+List<JSExportedDartFunction> callbackTable = [
+  (JSBoxedDartObject cb, int position, int duration) {
+    (cb.toDart as FlutterSoundPlayerCallback).updateProgress(
       duration: duration,
       position: position,
     );
-  }),
-  allowInterop((FlutterSoundPlayerCallback cb, int state) {
-    cb.updatePlaybackState(
+  }.toJS,
+  (JSBoxedDartObject cb, int state) {
+    (cb.toDart as FlutterSoundPlayerCallback).updatePlaybackState(
       state,
     );
-  }),
-  allowInterop((FlutterSoundPlayerCallback cb, int ln) {
-    cb.needSomeFood(
+  }.toJS,
+  (JSBoxedDartObject cb, int ln) {
+    (cb.toDart as FlutterSoundPlayerCallback).needSomeFood(
       ln,
     );
-  }),
-  allowInterop((FlutterSoundPlayerCallback cb, int state) {
-    cb.audioPlayerFinished(
+  }.toJS,
+  (JSBoxedDartObject cb, int state) {
+    (cb.toDart as FlutterSoundPlayerCallback).audioPlayerFinished(
       state,
     );
-  }),
-  allowInterop(
-      (FlutterSoundPlayerCallback cb, int state, bool success, int duration) {
-    cb.startPlayerCompleted(
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success, int duration) {
+    (cb.toDart as FlutterSoundPlayerCallback).startPlayerCompleted(
       state,
       success,
       duration,
     );
-  }),
-  allowInterop((FlutterSoundPlayerCallback cb, int state, bool success) {
-    cb.pausePlayerCompleted(state, success);
-  }),
-  allowInterop((FlutterSoundPlayerCallback cb, int state, bool success) {
-    cb.resumePlayerCompleted(state, success);
-  }),
-  allowInterop((FlutterSoundPlayerCallback cb, int state, bool success) {
-    cb.stopPlayerCompleted(state, success);
-  }),
-  allowInterop((FlutterSoundPlayerCallback cb, int state, bool success) {
-    cb.openPlayerCompleted(state, success);
-  }),
-  allowInterop((FlutterSoundPlayerCallback cb, int level, String msg) {
-    cb.log(Level.values[level], msg);
-  }),
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success) {
+    (cb.toDart as FlutterSoundPlayerCallback)
+        .pausePlayerCompleted(state, success);
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success) {
+    (cb.toDart as FlutterSoundPlayerCallback)
+        .resumePlayerCompleted(state, success);
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success) {
+    (cb.toDart as FlutterSoundPlayerCallback)
+        .stopPlayerCompleted(state, success);
+  }.toJS,
+  (JSBoxedDartObject cb, int state, bool success) {
+    (cb.toDart as FlutterSoundPlayerCallback)
+        .openPlayerCompleted(state, success);
+  }.toJS,
+  (JSBoxedDartObject cb, int level, String msg) {
+    (cb.toDart as FlutterSoundPlayerCallback).log(Level.values[level], msg);
+  }.toJS,
 ];
 
 //=========================================================================================================
@@ -252,10 +258,10 @@ class FlutterSoundPlayerWeb
     int slotno = findSession(callback);
     if (slotno < _slots.length) {
       assert(_slots[slotno] == null);
-      _slots[slotno] = newPlayerInstance(callback, callbackTable);
+      _slots[slotno] = newPlayerInstance(callback.toJSBox, callbackTable.toJS);
     } else {
       assert(slotno == _slots.length);
-      _slots.add(newPlayerInstance(callback, callbackTable));
+      _slots.add(newPlayerInstance(callback.toJSBox, callbackTable.toJS));
     }
     return _slots[slotno]!.initializeMediaPlayer();
   }
@@ -329,7 +335,7 @@ class FlutterSoundPlayerWeb
     }
     callback.log(Level.debug, 'startPlayer FromURI : $fromURI');
     var r = await getWebSession(callback)!.startPlayer(codec.index,
-        fromDataBuffer, fromURI, numChannels, sampleRate, bufferSize);
+        fromDataBuffer?.toJS, fromURI, numChannels, sampleRate, bufferSize);
     return r;
   }
 
@@ -385,10 +391,10 @@ class FlutterSoundPlayerWeb
     if (_mediaPlayerWeb != null) {
       return _mediaPlayerWeb!.feed(data: data);
     } else {
-      return getWebSession(callback)!.feed(data);
+      return getWebSession(callback)!.feed(data.toJS);
     }
   }
-
+/*
   // Return the length sent
   @override
   Future<int> feedFloat32(
@@ -398,7 +404,7 @@ class FlutterSoundPlayerWeb
     if (_mediaPlayerWeb != null) {
       return _mediaPlayerWeb!.feedFloat32(data: data);
     } else {
-      return getWebSession(callback)!.feedFloat32(data);
+      return getWebSession(callback)!.feedFloat32(data.toJS);
     }
   }
 
@@ -413,6 +419,8 @@ class FlutterSoundPlayerWeb
       return getWebSession(callback)!.feedInt16(data);
     }
   }
+  
+ */
 
   @override
   Future<int> pausePlayer(

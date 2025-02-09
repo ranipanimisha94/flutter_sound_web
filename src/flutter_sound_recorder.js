@@ -18,7 +18,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const RECORDER_VERSION = '9.23.0'
+const RECORDER_VERSION = '9.23.1'
 
 const IS_RECORDER_PAUSED = 1;
 const IS_RECORDER_RECORDING = 2;
@@ -28,13 +28,13 @@ function newRecorderInstance(aCallback, callbackTable) { return new FlutterSound
 
 
 const CB_updateRecorderProgress = 0;
-const CB_recordingData = 1;
-const CB_startRecorderCompleted = 2;
-const CB_pauseRecorderCompleted = 3;
-const CB_resumeRecorderCompleted = 4;
-const CB_stopRecorderCompleted = 5;
-const CB_openRecorderCompleted = 6;
-const CB_recorder_log = 7;
+//const CB_recordingData = 1;
+const CB_startRecorderCompleted = 1;
+const CB_pauseRecorderCompleted = 2;
+const CB_resumeRecorderCompleted = 3;
+const CB_stopRecorderCompleted = 4;
+const CB_openRecorderCompleted = 5;
+const CB_recorder_log = 6;
 
 class FlutterSoundRecorder {
         static newInstance(aCallback, callbackTable) { return new FlutterSoundRecorder(aCallback, callbackTable); }
@@ -227,7 +227,7 @@ class FlutterSoundRecorder {
                                 {
                                         if (toStream) // not yet implemented !
                                         {
-                                                me.callbackTable[CB_recordingData](me.callback, e.data);
+                                                //me.callbackTable[CB_recordingData](me.callback, e.data);
 
                                         }
                                         if (path != null && path != '') {
