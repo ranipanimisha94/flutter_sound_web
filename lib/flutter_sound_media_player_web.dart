@@ -52,8 +52,7 @@ class FlutterSoundMediaPlayerWeb {
       assert(audioCtx == null);
 
       audioCtx = AudioContext();
-      await audioCtx!.audioWorklet
-          .addModule("./assets/packages/tau_web/assets/js/async_processor.js").toDart;
+
       streamNode =
           AsyncWorkletNode(audioCtx!, "async-processor-1", channelCount: numChannels, numberOfInputs: 0, numberOfOutputs: 1);
       streamNode!.onBufferUnderflow((int outputNo) {

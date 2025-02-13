@@ -30,9 +30,12 @@ class AsyncWorkletNode {
   static bool alreadyInited = false;
   static Future<void> init() async {
     if (!alreadyInited) {
-      await importModule("./assets/packages/tau_web/assets/js/tau_web.js".toJS)
+      await importModule("./assets/packages/flutter_sound/assets/js/async_processor.js".toJS)
           .toDart;
       alreadyInited = true;
+
+      //await audioCtx!.audioWorklet.
+          //addModule    ("./assets/packages/flutter_sound/assets/js/async_processor.js").toDart;
     }
   }
 
