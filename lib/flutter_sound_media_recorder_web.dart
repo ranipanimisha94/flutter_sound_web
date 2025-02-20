@@ -21,7 +21,8 @@
 import 'dart:async';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
-import 'dart:typed_data' as t show Float32List, Uint8List, Int16List, Uint16List;
+import 'dart:typed_data' as t
+    show Float32List, Uint8List, Int16List, Uint16List;
 import 'package:logger/logger.dart' show Level;
 import 'package:web/web.dart' as web;
 //import 'package:tau_web/tau_web.dart';
@@ -65,8 +66,8 @@ class FlutterSoundMediaRecorderWeb {
     assert(audioCtx == null);
 
     audioCtx = AudioContext();
-    var streamNode =
-        AsyncWorkletNode(audioCtx!, "async-processor-1", channelCount: numChannels, numberOfInputs: 1, numberOfOutputs: 0);
+    var streamNode = AsyncWorkletNode(audioCtx!, "async-processor-1",
+        channelCount: numChannels, numberOfInputs: 1, numberOfOutputs: 0);
 
     streamNode.onReceiveData((int inputNo, List<t.Float32List> data) {
       if (data.length > 0) {
@@ -77,7 +78,8 @@ class FlutterSoundMediaRecorderWeb {
       //_logger().d('onBufferUnderflow($outputNo)');
     });
 
-    var constrains = MediaStreamConstraints(audio: true.toJS, video: false.toJS);
+    var constrains =
+        MediaStreamConstraints(audio: true.toJS, video: false.toJS);
     MediaDevices mds = web.window.navigator.mediaDevices;
     var mediaStream = await mds.getUserMedia(constrains).toDart;
     var mic = audioCtx!.createMediaStreamSource(mediaStream);

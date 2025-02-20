@@ -20,9 +20,10 @@
 
 import 'package:web/web.dart';
 //import 'dart:typed_data';
-import 'dart:typed_data' as t show Float32List, Uint8List, Int16List, Uint16List;
+import 'dart:typed_data' as t
+    show Float32List, Uint8List, Int16List, Uint16List;
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe' ;
+import 'dart:js_interop_unsafe';
 
 class AsyncWorkletNode {
   late AudioWorkletNode workletNode;
@@ -30,21 +31,23 @@ class AsyncWorkletNode {
   static bool alreadyInited = false;
   static Future<void> init() async {
     if (!alreadyInited) {
-      await importModule("./assets/packages/flutter_sound/assets/js/async_processor.js".toJS)
+      await importModule(
+              "./assets/packages/flutter_sound/assets/js/async_processor.js"
+                  .toJS)
           .toDart;
       alreadyInited = true;
 
       //await audioCtx!.audioWorklet.
-          //addModule    ("./assets/packages/flutter_sound/assets/js/async_processor.js").toDart;
+      //addModule    ("./assets/packages/flutter_sound/assets/js/async_processor.js").toDart;
     }
   }
 
   AudioWorkletNode delegate() => workletNode;
 
-  /* ctor */ AsyncWorkletNode(
-    BaseAudioContext context,
-    String name, {required int channelCount, required int numberOfInputs, required int numberOfOutputs})
-  {
+  /* ctor */ AsyncWorkletNode(BaseAudioContext context, String name,
+      {required int channelCount,
+      required int numberOfInputs,
+      required int numberOfOutputs}) {
     AudioWorkletNodeOptions opt = AudioWorkletNodeOptions(
       channelCountMode: 'explicit',
       channelCount: channelCount,
@@ -53,15 +56,18 @@ class AsyncWorkletNode {
       //outputChannelCount: (numberOfOutputs > 0) ? [channelCount] : [],
     );
 
-    workletNode = AudioWorkletNode(context, name, );
+    workletNode = AudioWorkletNode(
+      context,
+      name,
+    );
     var m = (Message e) {
-      var msg = e['msg'].toJS;// as JSString;
+      var msg = e['msg'].toJS; // as JSString;
       String msgType = msg.getProperty('messageType'.toJS);
       switch (msgType) {
         case 'AUDIO_BUFFER_UNDERFLOW':
           int outputNo =
               (msg.getProperty('outputNo'.toJS) as JSNumber).toDartInt;
-              _onAudioBufferUnderflow(outputNo);
+          _onAudioBufferUnderflow(outputNo);
           break;
         case 'RECEIVE_DATA': // Receive data from source to destination
           List<t.Float32List> data = msg.getProperty('data'.toJS);
@@ -70,34 +76,38 @@ class AsyncWorkletNode {
           break;
       }
     };
-    messagePort =  tMessagePort.fromDelegate(workletNode.port);
+    messagePort = tMessagePort.fromDelegate(workletNode.port);
     messagePort.onmessage = m;
     //workletNode.port.onmessage = m;
-
   }
   void Function(int outputNo) _onAudioBufferUnderflow = (int outputNo) {};
 
-  void Function(int outputNo, List<t.Float32List> data) _onReceiveData = (int outputNo, List<t.Float32List> data) {
+  void Function(int outputNo, List<t.Float32List> data) _onReceiveData =
+      (int outputNo, List<t.Float32List> data) {
     // Dummy
   };
 
-  void connect(AudioNode node) {workletNode.connect(node);}
-
+  void connect(AudioNode node) {
+    workletNode.connect(node);
+  }
 
   @override
-  void onBufferUnderflow(void Function (int outputNo) f) =>
+  void onBufferUnderflow(void Function(int outputNo) f) =>
       _onAudioBufferUnderflow = f;
 
   @override
-  void onReceiveData( void Function (int outputNo, List<t.Float32List> data) f) { _onReceiveData = f; }
+  void onReceiveData(void Function(int outputNo, List<t.Float32List> data) f) {
+    _onReceiveData = f;
+  }
 
   @override
   void send({int outputNo = 0, required List<t.Float32List> data}) {
     JSObject obj = JSObject();
     obj.setProperty('msgType'.toJS, 'SEND_DATA'.toJS);
     obj.setProperty('outputNo'.toJS, outputNo.toJS);
-    JSFloat32Array d = _toJS(data); // Cannot use `data.toJS`. Don't know it does not compile
-    obj.setProperty('data'.toJS,  d );
+    JSFloat32Array d =
+        _toJS(data); // Cannot use `data.toJS`. Don't know it does not compile
+    obj.setProperty('data'.toJS, d);
     workletNode.port.postMessage(obj);
   }
 
@@ -115,7 +125,6 @@ class AsyncWorkletNode {
     obj.setProperty('msgType'.toJS, 'STOP'.toJS);
     workletNode.port.postMessage(obj);
   }
-
 }
 
 // --------------------------------------------------------------------------------------------------
@@ -146,7 +155,6 @@ class MessagePort {
 typedef MessageFn = void Function(Message msg);
 
 typedef Message = dynamic;
-
 
 /*
 abstract class AudioWorkletNode {

@@ -26,7 +26,8 @@ import 'dart:js_interop';
 import 'package:web/web.dart';
 //import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
-import 'dart:typed_data' as t show Float32List, Uint8List, Int16List, Uint16List;
+import 'dart:typed_data' as t
+    show Float32List, Uint8List, Int16List, Uint16List;
 //import 'package:tau_web/tau_web.dart';
 //import 'package:etau/etau.dart';
 
@@ -53,8 +54,8 @@ class FlutterSoundMediaPlayerWeb {
 
       audioCtx = AudioContext();
 
-      streamNode =
-          AsyncWorkletNode(audioCtx!, "async-processor-1", channelCount: numChannels, numberOfInputs: 0, numberOfOutputs: 1);
+      streamNode = AsyncWorkletNode(audioCtx!, "async-processor-1",
+          channelCount: numChannels, numberOfInputs: 0, numberOfOutputs: 1);
       streamNode!.onBufferUnderflow((int outputNo) {
         callback.needSomeFood(0);
         //_logger.d('onBufferUnderflow($outputNo)');
