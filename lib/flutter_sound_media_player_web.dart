@@ -26,7 +26,8 @@ import 'dart:js_interop';
 import 'package:web/web.dart';
 //import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
-import 'dart:typed_data' as t show Float32List, Uint8List, Int16List;
+import 'dart:typed_data' as t
+    show Float32List, Uint8List, Int16List, Uint16List;
 //import 'package:tau_web/tau_web.dart';
 //import 'package:etau/etau.dart';
 
@@ -53,13 +54,8 @@ class FlutterSoundMediaPlayerWeb {
 
       audioCtx = AudioContext();
 
-      streamNode = AsyncWorkletNode(
-        audioCtx!,
-        "async-processor-1",
-        channelCount: numChannels,
-        numberOfInputs: 0,
-        numberOfOutputs: 1,
-      );
+      streamNode = AsyncWorkletNode(audioCtx!, "async-processor-1",
+          channelCount: numChannels, numberOfInputs: 0, numberOfOutputs: 1);
       streamNode!.onBufferUnderflow((int outputNo) {
         callback.needSomeFood(0);
         //_logger.d('onBufferUnderflow($outputNo)');
@@ -88,11 +84,15 @@ class FlutterSoundMediaPlayerWeb {
     return 0; // PlayerState.stopped.index; // PlayerState.isStopped;
   }
 
-  Future<int> feed({required t.Uint8List data}) async {
+  Future<int> feed({
+    required t.Uint8List data,
+  }) async {
     return -1;
   }
 
-  Future<int> feedFloat32({required List<t.Float32List> data}) async {
+  Future<int> feedFloat32({
+    required List<t.Float32List> data,
+  }) async {
     streamNode!.send(outputNo: 0, data: data);
     return 0; // Length written
   }

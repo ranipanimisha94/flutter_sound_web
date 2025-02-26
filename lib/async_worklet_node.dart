@@ -20,7 +20,8 @@
 
 import 'package:web/web.dart';
 //import 'dart:typed_data';
-import 'dart:typed_data' as t show Float32List;
+import 'dart:typed_data' as t
+    show Float32List, Uint8List, Int16List, Uint16List;
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
@@ -31,8 +32,9 @@ class AsyncWorkletNode {
   static Future<void> init() async {
     if (!alreadyInited) {
       await importModule(
-        "./assets/packages/flutter_sound/assets/js/async_processor.js".toJS,
-      ).toDart;
+              "./assets/packages/flutter_sound/assets/js/async_processor.js"
+                  .toJS)
+          .toDart;
       alreadyInited = true;
 
       //await audioCtx!.audioWorklet.
@@ -42,15 +44,22 @@ class AsyncWorkletNode {
 
   AudioWorkletNode delegate() => workletNode;
 
-  /* ctor */
-  AsyncWorkletNode(
-    BaseAudioContext context,
-    String name, {
-    required int channelCount,
-    required int numberOfInputs,
-    required int numberOfOutputs,
-  }) {
-    workletNode = AudioWorkletNode(context, name);
+  /* ctor */ AsyncWorkletNode(BaseAudioContext context, String name,
+      {required int channelCount,
+      required int numberOfInputs,
+      required int numberOfOutputs}) {
+    AudioWorkletNodeOptions opt = AudioWorkletNodeOptions(
+      channelCountMode: 'explicit',
+      channelCount: channelCount,
+      numberOfInputs: numberOfInputs,
+      numberOfOutputs: numberOfOutputs,
+      //outputChannelCount: (numberOfOutputs > 0) ? [channelCount] : [],
+    );
+
+    workletNode = AudioWorkletNode(
+      context,
+      name,
+    );
     var m = (Message e) {
       var msg = e['msg'].toJS; // as JSString;
       String msgType = msg.getProperty('messageType'.toJS);
@@ -73,10 +82,8 @@ class AsyncWorkletNode {
   }
   void Function(int outputNo) _onAudioBufferUnderflow = (int outputNo) {};
 
-  void Function(int outputNo, List<t.Float32List> data) _onReceiveData = (
-    int outputNo,
-    List<t.Float32List> data,
-  ) {
+  void Function(int outputNo, List<t.Float32List> data) _onReceiveData =
+      (int outputNo, List<t.Float32List> data) {
     // Dummy
   };
 
@@ -84,23 +91,22 @@ class AsyncWorkletNode {
     workletNode.connect(node);
   }
 
-  //@override
+  @override
   void onBufferUnderflow(void Function(int outputNo) f) =>
       _onAudioBufferUnderflow = f;
 
-  ///@override
+  @override
   void onReceiveData(void Function(int outputNo, List<t.Float32List> data) f) {
     _onReceiveData = f;
   }
 
-  ///@override
+  @override
   void send({int outputNo = 0, required List<t.Float32List> data}) {
     JSObject obj = JSObject();
     obj.setProperty('msgType'.toJS, 'SEND_DATA'.toJS);
     obj.setProperty('outputNo'.toJS, outputNo.toJS);
-    JSFloat32Array d = _toJS(
-      data,
-    ); // Cannot use `data.toJS`. Don't know it does not compile
+    JSFloat32Array d =
+        _toJS(data); // Cannot use `data.toJS`. Don't know it does not compile
     obj.setProperty('data'.toJS, d);
     workletNode.port.postMessage(obj);
   }
@@ -113,7 +119,7 @@ class AsyncWorkletNode {
     return r;
   }
 
-  //@override
+  @override
   void stop() {
     JSObject obj = JSObject();
     obj.setProperty('msgType'.toJS, 'STOP'.toJS);
@@ -181,24 +187,23 @@ class tMessagePort {
   MessageFn f = (e) {
     //print('Dummy');
   };
-  /* ctor */
-  tMessagePort.fromDelegate(this.delegate);
+  /* ctor */ tMessagePort.fromDelegate(this.delegate);
   /* ctor */ // MessagePort() : delegate = w.MessagePort();
 
-  //@override
+  @override
   MessageFn get onmessage => f;
 
-  //@override
+  @override
   void postMessage(Message msg) => delegate.postMessage(msg);
 
-  //@override
+  @override
   set onmessage(f) {
     this.f = f;
     delegate.onmessage = rcvMessage.toJS;
   }
 
   void rcvMessage(MessageEvent e) {
-    //    Map<String, dynamic> data = (e.data as JSObject).;
+//    Map<String, dynamic> data = (e.data as JSObject).;
     Map<String, dynamic> map = {
       'msg': e.data,
       'origin': e.origin,

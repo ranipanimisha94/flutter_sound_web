@@ -166,20 +166,14 @@ class FlutterSoundPlugin //extends FlutterSoundPlatform
     FlutterSoundPlayerWeb.registerWith(registrar);
     FlutterSoundRecorderWeb.registerWith(registrar);
     importJsLibrary(
-      url: "./howler/howler.js",
-      flutterPluginName: "flutter_sound_web",
-    );
+        url: "./howler/howler.js", flutterPluginName: "flutter_sound_web");
     importJsLibrary(
-      url: "./src/flutter_sound.js",
-      flutterPluginName: "flutter_sound_web",
-    );
+        url: "./src/flutter_sound.js", flutterPluginName: "flutter_sound_web");
     importJsLibrary(
-      url: "./src/flutter_sound_player.js",
-      flutterPluginName: "flutter_sound_web",
-    );
+        url: "./src/flutter_sound_player.js",
+        flutterPluginName: "flutter_sound_web");
     importJsLibrary(
-      url: "./src/flutter_sound_recorder.js",
-      flutterPluginName: "flutter_sound_web",
-    );
+        url: "./src/flutter_sound_recorder.js",
+        flutterPluginName: "flutter_sound_web");
   }
 }

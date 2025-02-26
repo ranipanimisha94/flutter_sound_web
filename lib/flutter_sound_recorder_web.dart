@@ -34,9 +34,7 @@ import 'dart:js_interop';
 
 @JS('newRecorderInstance')
 external FlutterSoundRecorder newRecorderInstance(
-  JSBoxedDartObject callBack,
-  JSArray<JSExportedDartFunction> callbackTable,
-);
+    JSBoxedDartObject callBack, JSArray<JSExportedDartFunction> callbackTable);
 
 @JS()
 extension type FlutterSoundRecorder._(JSObject _) {
@@ -51,32 +49,28 @@ extension type FlutterSoundRecorder._(JSObject _) {
   external void releaseFlautoRecorder();
 
   @JS('isEncoderSupported')
-  external bool isEncoderSupported(int codec);
+  external bool isEncoderSupported(
+    int codec,
+  );
 
   @JS('setAudioFocus')
   external void setAudioFocus(
-    int focus,
-    int category,
-    int mode,
-    int? audioFlags,
-    int device,
-  );
+      int focus, int category, int mode, int? audioFlags, int device);
 
   @JS('setSubscriptionDuration')
   external void setSubscriptionDuration(int duration);
 
   @JS('startRecorder')
   external void startRecorder(
-    String? path,
-    int? sampleRate,
-    int? numChannels,
-    int? bitRate,
-    int? bufferSize,
-    bool? enableVoiceProcessing,
-    int codec,
-    bool? toStream,
-    int audioSource,
-  );
+      String? path,
+      int? sampleRate,
+      int? numChannels,
+      int? bitRate,
+      int? bufferSize,
+      bool? enableVoiceProcessing,
+      int codec,
+      bool? toStream,
+      int audioSource);
 
   @JS('stopRecorder')
   external void stopRecorder();
@@ -88,18 +82,20 @@ extension type FlutterSoundRecorder._(JSObject _) {
   external void resumeRecorder();
 
   @JS('getRecordURL')
-  external String getRecordURL(String path);
+  external String getRecordURL(
+    String path,
+  );
 
   @JS('deleteRecord')
-  external bool deleteRecord(String path);
+  external bool deleteRecord(
+    String path,
+  );
 }
 
 List<JSExportedDartFunction> callbackTable = [
   (JSBoxedDartObject cb, int duration, double dbPeakLevel) {
-    (cb.toDart as FlutterSoundRecorderCallback).updateRecorderProgress(
-      duration: duration,
-      dbPeakLevel: dbPeakLevel,
-    );
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .updateRecorderProgress(duration: duration, dbPeakLevel: dbPeakLevel);
   }.toJS,
   /*
   (JSBoxedDartObject cb, Uint8List? data) {
@@ -107,35 +103,24 @@ List<JSExportedDartFunction> callbackTable = [
   }.toJS,
    */
   (JSBoxedDartObject cb, int state, bool success) {
-    (cb.toDart as FlutterSoundRecorderCallback).startRecorderCompleted(
-      state,
-      success,
-    );
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .startRecorderCompleted(state, success);
   }.toJS,
   (JSBoxedDartObject cb, int state, bool success) {
-    (cb.toDart as FlutterSoundRecorderCallback).pauseRecorderCompleted(
-      state,
-      success,
-    );
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .pauseRecorderCompleted(state, success);
   }.toJS,
   (JSBoxedDartObject cb, int state, bool success) {
-    (cb.toDart as FlutterSoundRecorderCallback).resumeRecorderCompleted(
-      state,
-      success,
-    );
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .resumeRecorderCompleted(state, success);
   }.toJS,
   (JSBoxedDartObject cb, int state, bool success, String url) {
-    (cb.toDart as FlutterSoundRecorderCallback).stopRecorderCompleted(
-      state,
-      success,
-      url,
-    );
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .stopRecorderCompleted(state, success, url);
   }.toJS,
   (JSBoxedDartObject cb, int state, bool success) {
-    (cb.toDart as FlutterSoundRecorderCallback).openRecorderCompleted(
-      state,
-      success,
-    );
+    (cb.toDart as FlutterSoundRecorderCallback)
+        .openRecorderCompleted(state, success);
   }.toJS,
   (JSBoxedDartObject cb, int level, String msg) {
     (cb.toDart as FlutterSoundRecorderCallback).log(Level.values[level], msg);
@@ -160,10 +145,12 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
 
   FlutterSoundMediaRecorderWeb? _mediaRecorderWeb;
 
-  //================================================================================================================
+//================================================================================================================
 
   @override
-  int getSampleRate(FlutterSoundRecorderCallback callback) {
+  int getSampleRate(
+    FlutterSoundRecorderCallback callback,
+  ) {
     //  num sampleRate = audioCtx!.sampleRate!;
     //return sampleRate.floor();
     return 0; // TODO
@@ -191,7 +178,9 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   }
 
   @override
-  void requestData(FlutterSoundRecorderCallback callback) {
+  void requestData(
+    FlutterSoundRecorderCallback callback,
+  ) {
     if (_mediaRecorderWeb != null) {
       _mediaRecorderWeb!.requestData();
     }
@@ -202,7 +191,9 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   RecorderState get recorderState => RecorderState.isStopped; // TODO
 
   @override
-  Future<void>? resetPlugin(FlutterSoundRecorderCallback callback) async {
+  Future<void>? resetPlugin(
+    FlutterSoundRecorderCallback callback,
+  ) async {
     callback.log(Level.debug, '---> resetPlugin');
     for (int i = 0; i < _slots.length; ++i) {
       callback.log(Level.debug, "Releasing slot #$i");
@@ -221,10 +212,8 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     int slotno = findSession(callback);
     if (slotno < _slots.length) {
       assert(_slots[slotno] == null);
-      _slots[slotno] = newRecorderInstance(
-        callback.toJSBox,
-        callbackTable.toJS,
-      );
+      _slots[slotno] =
+          newRecorderInstance(callback.toJSBox, callbackTable.toJS);
     } else {
       assert(slotno == _slots.length);
       _slots.add(newRecorderInstance(callback.toJSBox, callbackTable.toJS));
@@ -235,7 +224,9 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   }
 
   @override
-  Future<void> closeRecorder(FlutterSoundRecorderCallback callback) async {
+  Future<void> closeRecorder(
+    FlutterSoundRecorderCallback callback,
+  ) async {
     if (_mediaRecorderWeb != null) {
       _mediaRecorderWeb!.stopRecorder();
       _mediaRecorderWeb = null;
@@ -302,7 +293,9 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   }
 
   @override
-  Future<void> stopRecorder(FlutterSoundRecorderCallback callback) async {
+  Future<void> stopRecorder(
+    FlutterSoundRecorderCallback callback,
+  ) async {
     if (_mediaRecorderWeb != null) {
       await _mediaRecorderWeb!.stopRecorder();
       _mediaRecorderWeb = null;
@@ -316,7 +309,9 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   }
 
   @override
-  Future<void> pauseRecorder(FlutterSoundRecorderCallback callback) async {
+  Future<void> pauseRecorder(
+    FlutterSoundRecorderCallback callback,
+  ) async {
     if (_mediaRecorderWeb != null) {
       return _mediaRecorderWeb!.pauseRecorder();
     } else {
@@ -325,7 +320,9 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   }
 
   @override
-  Future<void> resumeRecorder(FlutterSoundRecorderCallback callback) async {
+  Future<void> resumeRecorder(
+    FlutterSoundRecorderCallback callback,
+  ) async {
     if (_mediaRecorderWeb != null) {
       return _mediaRecorderWeb!.resumeRecorder();
     } else {
@@ -335,17 +332,13 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
 
   @override
   Future<String> getRecordURL(
-    FlutterSoundRecorderCallback callback,
-    String path,
-  ) async {
+      FlutterSoundRecorderCallback callback, String path) async {
     return getWebSession(callback)!.getRecordURL(path);
   }
 
   @override
   Future<bool> deleteRecord(
-    FlutterSoundRecorderCallback callback,
-    String path,
-  ) async {
+      FlutterSoundRecorderCallback callback, String path) async {
     return getWebSession(callback)!.deleteRecord(path);
   }
 }
