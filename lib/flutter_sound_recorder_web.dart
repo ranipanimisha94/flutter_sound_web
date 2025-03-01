@@ -25,7 +25,6 @@ import 'dart:async';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
 import 'flutter_sound_media_recorder_web.dart';
 import 'dart:js_interop';
@@ -256,29 +255,26 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   @override
   Future<void> startRecorder(
     FlutterSoundRecorderCallback callback, {
-    String? path,
     Codec? codec,
-    StreamSink<Uint8List>? toStream,
-    StreamSink<List<Float32List>>? toStreamFloat32,
-    StreamSink<List<Int16List>>? toStreamInt16,
-    AudioSource? audioSource,
-    Duration timeSlice = Duration.zero,
-    int sampleRate = 16000,
+    String? path,
+    int sampleRate = 44100,
     int numChannels = 1,
     int bitRate = 16000,
     int bufferSize = 8192,
+    Duration timeSlice = Duration.zero,
     bool enableVoiceProcessing = false,
+    bool interleaved = true,
+    required bool toStream,
+    AudioSource? audioSource,
   }) async {
     _mediaRecorderWeb = null;
 
-    if (toStream != null || toStreamFloat32 != null || toStreamInt16 != null) {
+    if (toStream) {
       _mediaRecorderWeb = FlutterSoundMediaRecorderWeb();
       return _mediaRecorderWeb!.startRecorderToStream(
         callback,
         codec: codec!,
-        toStream: toStream,
-        toStreamFloat32: toStreamFloat32,
-        toStreamInt16: toStreamInt16,
+        //toStream: toStream,
         audioSource: audioSource,
         timeSlice: timeSlice,
         sampleRate: sampleRate,
@@ -295,7 +291,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
         bufferSize,
         enableVoiceProcessing,
         codec!.index,
-        toStream != null,
+        toStream,
         audioSource!.index,
       );
     }
