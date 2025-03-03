@@ -193,9 +193,8 @@ List<JSExportedDartFunction> callbackTable = [
 ///
 
 class FlutterSoundPlayerWeb
-    extends
-        FlutterSoundPlayerPlatform //implements FlutterSoundPlayerCallback
-        {
+    extends FlutterSoundPlayerPlatform //implements FlutterSoundPlayerCallback
+{
   static List<String> defaultExtensions = [
     "flutter_sound.aac", // defaultCodec
     "flutter_sound.aac", // aacADTS
@@ -305,7 +304,8 @@ class FlutterSoundPlayerWeb
   }) async {
     return getWebSession(
       callback,
-    )!.setSubscriptionDuration(duration!.inMilliseconds);
+    )!
+        .setSubscriptionDuration(duration!.inMilliseconds);
   }
 
   @override
