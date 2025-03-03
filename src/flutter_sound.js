@@ -18,7 +18,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const VERSION = '9.24.4'
+const VERSION = '9.24.5'
 
 
 const VERBOSE = 0;
