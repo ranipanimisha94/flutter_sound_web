@@ -61,10 +61,12 @@ class FlutterSoundMediaRecorderWeb {
     this.toStreamInt16 = toStreamInt16;
 
     callback.log(Level.debug, 'Start Recorder to Stream');
-    await AsyncWorkletNode.init();
+    //await AsyncWorkletNode.init();
     assert(audioCtx == null);
-
     audioCtx = AudioContext();
+    await audioCtx!.audioWorklet
+        .addModule("./assets/packages/flutter_sound_web/src/async_processor.js")
+        .toDart;
     var streamNode = AsyncWorkletNode(
       audioCtx!,
       "async-processor-1",

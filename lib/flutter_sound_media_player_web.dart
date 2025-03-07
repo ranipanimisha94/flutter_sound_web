@@ -48,7 +48,7 @@ class FlutterSoundMediaPlayerWeb {
     if (codec == Codec.pcmFloat32 && !interleaved) {
       // Actually this is the only case implemented {
       callback.log(Level.debug, 'Start startPlayerFromStream to Stream');
-      await AsyncWorkletNode.init();
+      //await AsyncWorkletNode.init();
       assert(audioCtx == null);
 
       audioCtx = AudioContext();

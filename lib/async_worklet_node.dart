@@ -28,10 +28,11 @@ class AsyncWorkletNode {
   late AudioWorkletNode workletNode;
   late tMessagePort messagePort;
   static bool alreadyInited = false;
+  /*
   static Future<void> init() async {
     if (!alreadyInited) {
       await importModule(
-        "./assets/packages/flutter_sound/assets/js/async_processor.js".toJS,
+        "./assets/packages/flutter_sound_web/src/async_processor.js".toJS,
       ).toDart;
       alreadyInited = true;
 
@@ -39,6 +40,8 @@ class AsyncWorkletNode {
       //addModule    ("./assets/packages/flutter_sound/assets/js/async_processor.js").toDart;
     }
   }
+
+   */
 
   AudioWorkletNode delegate() => workletNode;
 
@@ -52,7 +55,7 @@ class AsyncWorkletNode {
   }) {
     workletNode = AudioWorkletNode(context, name);
     var m = (Message e) {
-      var msg = e['msg'].toJS; // as JSString;
+      var msg = e['msg'].toJS;
       String msgType = msg.getProperty('messageType'.toJS);
       switch (msgType) {
         case 'AUDIO_BUFFER_UNDERFLOW':
