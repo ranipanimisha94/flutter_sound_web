@@ -21,7 +21,6 @@
 import 'dart:async';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_player_platform_interface.dart';
-import 'package:flutter_sound_web/async_worklet_node.dart';
 import 'dart:js_interop';
 import 'package:web/web.dart';
 //import 'dart:typed_data';
@@ -32,7 +31,6 @@ import 'dart:typed_data' as t show Float32List, Uint8List, Int16List;
 
 class FlutterSoundMediaPlayerWeb {
   AudioContext? audioCtx;
-  AsyncWorkletNode? streamNode;
   FlutterSoundPlayerCallback? callback;
 
   Future<int> startPlayerFromStream(
@@ -45,32 +43,37 @@ class FlutterSoundMediaPlayerWeb {
     //TWhenFinished? whenFinished,
   }) async {
     this.callback = callback;
-    if (codec == Codec.pcmFloat32 && !interleaved) {
-      // Actually this is the only case implemented {
-      callback.log(Level.debug, 'Start startPlayerFromStream to Stream');
-      //await AsyncWorkletNode.init();
-      assert(audioCtx == null);
+    callback.log(Level.debug, 'Start startPlayerFromStream to Stream');
+    //await AsyncWorkletNode.init();
+    assert(audioCtx == null);
+    audioCtx = AudioContext();
 
-      audioCtx = AudioContext();
+    await audioCtx!.audioWorklet
+        .addModule(
+            "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js")
+        .toDart;
+    AudioWorkletNodeOptions options = AudioWorkletNodeOptions(
+      channelCount: numChannels,
+      numberOfInputs: 0,
+      numberOfOutputs: 1,
+    );
+    var streamNode = AudioWorkletNode(
+      audioCtx!,
+      "flutter-sound-stream-processor",
+      options,
+    );
 
-      streamNode = AsyncWorkletNode(
-        audioCtx!,
-        "async-processor-1",
-        channelCount: numChannels,
-        numberOfInputs: 0,
-        numberOfOutputs: 1,
-      );
-      streamNode!.onBufferUnderflow((int outputNo) {
-        callback.needSomeFood(0);
-        //_logger.d('onBufferUnderflow($outputNo)');
-      });
+    streamNode.port.onmessage = (MessageEvent e) {}.toJS;
 
-      streamNode!.connect(audioCtx!.destination);
-      callback.startPlayerCompleted(1 /*PlayerState.playing.index*/, true, 0);
-      return 1; //PlayerState.playing.index; // PlayerState.isPlaying;
-    } else {
-      return 0; // PlayerState.isStopped;
-    }
+    streamNode!.connect(audioCtx!.destination);
+
+    //streamNode!.onBufferUnderflow((int outputNo) {
+    //callback.needSomeFood(0);
+    //_logger.d('onBufferUnderflow($outputNo)');
+    //});
+
+    callback.startPlayerCompleted(1 /*PlayerState.playing.index*/, true, 0);
+    return 1; //PlayerState.playing.index; // PlayerState.isPlaying;
   }
 
   Future<int> stopPlayer() async {
@@ -78,11 +81,11 @@ class FlutterSoundMediaPlayerWeb {
     //streamSink = null;
     //mediaRecorder = null;
     // mic.disconnect();
-    streamNode?.stop();
+    //streamNode?.stop();
     //streamNode?.disconnect();
     await audioCtx?.close().toDart;
     audioCtx = null;
-    streamNode = null;
+    //streamNode = null;
     callback!.log(Level.debug, 'stop');
     callback!.stopPlayerCompleted(0, true);
     return 0; // PlayerState.stopped.index; // PlayerState.isStopped;
@@ -93,7 +96,7 @@ class FlutterSoundMediaPlayerWeb {
   }
 
   Future<int> feedFloat32({required List<t.Float32List> data}) async {
-    streamNode!.send(outputNo: 0, data: data);
+    //streamNode!.send(outputNo: 0, data: data);
     return 0; // Length written
   }
 

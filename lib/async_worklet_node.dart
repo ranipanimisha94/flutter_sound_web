@@ -24,24 +24,10 @@ import 'dart:typed_data' as t show Float32List;
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
-class AsyncWorkletNode {
+class ToStreamNode {
   late AudioWorkletNode workletNode;
   late tMessagePort messagePort;
   static bool alreadyInited = false;
-  /*
-  static Future<void> init() async {
-    if (!alreadyInited) {
-      await importModule(
-        "./assets/packages/flutter_sound_web/src/async_processor.js".toJS,
-      ).toDart;
-      alreadyInited = true;
-
-      //await audioCtx!.audioWorklet.
-      //addModule    ("./assets/packages/flutter_sound/assets/js/async_processor.js").toDart;
-    }
-  }
-
-   */
 
   AudioWorkletNode delegate() => workletNode;
 
@@ -74,6 +60,7 @@ class AsyncWorkletNode {
     messagePort.onmessage = m;
     //workletNode.port.onmessage = m;
   }
+
   void Function(int outputNo) _onAudioBufferUnderflow = (int outputNo) {};
 
   void Function(int outputNo, List<t.Float32List> data) _onReceiveData = (
@@ -126,57 +113,9 @@ class AsyncWorkletNode {
 
 // --------------------------------------------------------------------------------------------------
 
-/*
-class MessagePort {
-  /// The read-only **`port`** property of the
-  /// [AudioWorkletNode] returns the associated
-  /// [MessagePort]. It can be used to communicate between the node and its
-  /// associated [AudioWorkletProcessor].
-  ///
-  /// > **Note:** The port at the other end of the channel is
-  /// > available under the [AudioWorkletProcessor.port] property of the
-  /// > processor.
-  MessagePort get port;
-  EventHandler get onProcessorError;
-  set onProcessorError(EventHandler value);
-
-  set onmessage(MessageFn f);
-
-  MessageFn get onmessage;
-  MessagePort get port;
-
-  void postMessage(Message e);
-}
-*/
-
 typedef MessageFn = void Function(Message msg);
 
 typedef Message = dynamic;
-
-/*
-abstract class AudioWorkletNode {
-  /// The read-only **`parameters`** property of the
-  /// [AudioWorkletNode] returns the associated
-  /// [AudioParamMap] — that is, a `Map`-like collection of
-  /// [AudioParam] objects. They are instantiated during creation of the
-  /// underlying [AudioWorkletProcessor] according to its
-  /// [AudioWorkletProcessor.parameterDescriptors] static
-  /// getter.
-  AudioParamMap get parameters;
-
-  /// The read-only **`port`** property of the
-  /// [AudioWorkletNode] returns the associated
-  /// [MessagePort]. It can be used to communicate between the node and its
-  /// associated [AudioWorkletProcessor].
-  ///
-  /// > **Note:** The port at the other end of the channel is
-  /// > available under the [AudioWorkletProcessor.port] property of the
-  /// > processor.
-  MessagePort get port;
-  EventHandler get onProcessorError;
-  set onProcessorError(EventHandler value);
-}
-*/
 
 class tMessagePort {
   MessagePort delegate;

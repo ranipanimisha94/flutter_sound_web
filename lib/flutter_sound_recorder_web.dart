@@ -158,6 +158,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   }
 
   FlutterSoundMediaRecorderWeb? _mediaRecorderWeb;
+  Duration? mSubscriptionDuration;
 
   //================================================================================================================
 
@@ -249,7 +250,13 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     FlutterSoundRecorderCallback callback, {
     Duration? duration,
   }) async {
-    getWebSession(callback)!.setSubscriptionDuration(duration!.inMilliseconds);
+    mSubscriptionDuration = duration;
+    if (_mediaRecorderWeb != null) {
+      _mediaRecorderWeb!.setSubscriptionDuration(duration);
+    } else {
+      getWebSession(callback)!
+          .setSubscriptionDuration(duration!.inMilliseconds);
+    }
   }
 
   @override
@@ -280,6 +287,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
         sampleRate: sampleRate,
         numChannels: numChannels,
         bufferSize: bufferSize,
+        interleaved: interleaved,
       );
     } else {
       assert(codec != Codec.pcmFloat32 && codec != Codec.pcm16);
