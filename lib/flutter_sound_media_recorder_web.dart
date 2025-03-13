@@ -29,7 +29,7 @@ import 'package:web/web.dart' as web;
 //import 'package:tau_web/tau_web.dart';
 //import 'package:etau/etau.dart';
 import 'dart:js_interop';
-import 'dart:js_util';
+//import 'dart:js_util';
 import 'package:web/web.dart';
 
 typedef Message = dynamic;
