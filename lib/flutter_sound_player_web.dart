@@ -22,7 +22,7 @@
 library flutter_sound;
 
 import 'dart:async';
-import 'dart:typed_data' show Uint8List;
+import 'dart:typed_data' show Uint8List, Float32List, Int16List;
 
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_player_platform_interface.dart';
@@ -193,8 +193,9 @@ List<JSExportedDartFunction> callbackTable = [
 ///
 
 class FlutterSoundPlayerWeb
-    extends FlutterSoundPlayerPlatform //implements FlutterSoundPlayerCallback
-{
+    extends
+        FlutterSoundPlayerPlatform //implements FlutterSoundPlayerCallback
+        {
   static List<String> defaultExtensions = [
     "flutter_sound.aac", // defaultCodec
     "flutter_sound.aac", // aacADTS
@@ -304,8 +305,7 @@ class FlutterSoundPlayerWeb
   }) async {
     return getWebSession(
       callback,
-    )!
-        .setSubscriptionDuration(duration!.inMilliseconds);
+    )!.setSubscriptionDuration(duration!.inMilliseconds);
   }
 
   @override
@@ -399,7 +399,7 @@ class FlutterSoundPlayerWeb
       return getWebSession(callback)!.feed(data.toJS);
     }
   }
-  /*
+
   // Return the length sent
   @override
   Future<int> feedFloat32(
@@ -409,7 +409,9 @@ class FlutterSoundPlayerWeb
     if (_mediaPlayerWeb != null) {
       return _mediaPlayerWeb!.feedFloat32(data: data);
     } else {
-      return getWebSession(callback)!.feedFloat32(data.toJS);
+      throw Exception(
+        'You must start the player with [startPlayerFromStream()',
+      );
     }
   }
 
@@ -421,11 +423,11 @@ class FlutterSoundPlayerWeb
     if (_mediaPlayerWeb != null) {
       return _mediaPlayerWeb!.feedInt16(data: data);
     } else {
-      return getWebSession(callback)!.feedInt16(data);
+      throw Exception(
+        'You must start the player with [startPlayerFromStream()',
+      );
     }
   }
-  
- */
 
   @override
   Future<int> pausePlayer(FlutterSoundPlayerCallback callback) async {

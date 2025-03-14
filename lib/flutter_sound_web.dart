@@ -57,12 +57,13 @@ class ImportJsLibraryWeb {
   }
 
   static html.ScriptElement _createScriptTag(String library) {
-    final html.ScriptElement script = html.ScriptElement()
-      ..type = "text/javascript"
-      ..charset = "utf-8"
-      ..async = true
-      //..defer = true
-      ..src = library;
+    final html.ScriptElement script =
+        html.ScriptElement()
+          ..type = "text/javascript"
+          ..charset = "utf-8"
+          ..async = true
+          //..defer = true
+          ..src = library;
     return script;
   }
 

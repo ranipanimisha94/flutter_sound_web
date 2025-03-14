@@ -26,12 +26,15 @@ import 'package:web/web.dart';
 //import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
 import 'dart:typed_data' as t show Float32List, Uint8List, Int16List;
+import 'dart:js_util';
+
 //import 'package:tau_web/tau_web.dart';
 //import 'package:etau/etau.dart';
 
 class FlutterSoundMediaPlayerWeb {
   AudioContext? audioCtx;
   FlutterSoundPlayerCallback? callback;
+  AudioWorkletNode? streamNode;
 
   Future<int> startPlayerFromStream(
     FlutterSoundPlayerCallback callback, {
@@ -50,20 +53,25 @@ class FlutterSoundMediaPlayerWeb {
 
     await audioCtx!.audioWorklet
         .addModule(
-            "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js")
+          "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
+        )
         .toDart;
     AudioWorkletNodeOptions options = AudioWorkletNodeOptions(
       channelCount: numChannels,
       numberOfInputs: 0,
       numberOfOutputs: 1,
     );
-    var streamNode = AudioWorkletNode(
+    streamNode = AudioWorkletNode(
       audioCtx!,
       "flutter-sound-stream-processor",
       options,
     );
 
-    streamNode.port.onmessage = (MessageEvent e) {}.toJS;
+    streamNode!.port.onmessage =
+        (MessageEvent e) {
+          print(e.origin);
+          print(e.type);
+        }.toJS;
 
     streamNode!.connect(audioCtx!.destination);
 
@@ -76,6 +84,12 @@ class FlutterSoundMediaPlayerWeb {
     return 1; //PlayerState.playing.index; // PlayerState.isPlaying;
   }
 
+  void postMessage(String message, JSAny? data) {
+    JSObject obj = JSObject();
+    setProperty(obj, message, data);
+    streamNode!.port.postMessage(obj);
+  }
+
   Future<int> stopPlayer() async {
     //recordedChunks = [];
     //streamSink = null;
@@ -84,6 +98,7 @@ class FlutterSoundMediaPlayerWeb {
     //streamNode?.stop();
     //streamNode?.disconnect();
     await audioCtx?.close().toDart;
+    streamNode = null;
     audioCtx = null;
     //streamNode = null;
     callback!.log(Level.debug, 'stop');
@@ -96,7 +111,7 @@ class FlutterSoundMediaPlayerWeb {
   }
 
   Future<int> feedFloat32({required List<t.Float32List> data}) async {
-    //streamNode!.send(outputNo: 0, data: data);
+    postMessage('bonjour', data[0].toJS);
     return 0; // Length written
   }
 

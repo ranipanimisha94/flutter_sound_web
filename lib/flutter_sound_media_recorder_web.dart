@@ -22,7 +22,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
-import 'dart:typed_data' as t
+import 'dart:typed_data'
+    as t
     show Float32List, Uint8List, Int16List, ByteBuffer;
 import 'package:logger/logger.dart' show Level;
 import 'package:web/web.dart' as web;
@@ -50,7 +51,9 @@ class FlutterSoundMediaRecorderWeb {
   AudioContext? audioCtx;
 
   void interleaves16(
-      FlutterSoundRecorderCallback callBack, List<t.ByteBuffer> data) {
+    FlutterSoundRecorderCallback callBack,
+    List<t.ByteBuffer> data,
+  ) {
     int ln = data[0].asFloat32List().length;
     int channelCount = data.length;
     t.Int16List r = t.Int16List(data.length * ln);
@@ -66,7 +69,9 @@ class FlutterSoundMediaRecorderWeb {
   }
 
   void interleaves32(
-      FlutterSoundRecorderCallback callBack, List<t.ByteBuffer> data) {
+    FlutterSoundRecorderCallback callBack,
+    List<t.ByteBuffer> data,
+  ) {
     int ln = data[0].asFloat32List().length;
     int channelCount = data.length;
     t.Float32List r = t.Float32List(data.length * ln);
@@ -81,7 +86,9 @@ class FlutterSoundMediaRecorderWeb {
   }
 
   void planMode16(
-      FlutterSoundRecorderCallback callBack, List<t.ByteBuffer> data) {
+    FlutterSoundRecorderCallback callBack,
+    List<t.ByteBuffer> data,
+  ) {
     int ln = data[0].asFloat32List().length;
     int channelCount = data.length;
     List<t.Int16List> r = [];
@@ -98,7 +105,9 @@ class FlutterSoundMediaRecorderWeb {
   }
 
   void planMode32(
-      FlutterSoundRecorderCallback callBack, List<t.ByteBuffer> data) {
+    FlutterSoundRecorderCallback callBack,
+    List<t.ByteBuffer> data,
+  ) {
     int ln = data[0].asFloat32List().length;
     int channelCount = data.length;
     List<t.Float32List> r = [];
@@ -162,7 +171,8 @@ class FlutterSoundMediaRecorderWeb {
 
     await audioCtx!.audioWorklet
         .addModule(
-            "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js")
+          "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
+        )
         .toDart;
     AudioWorkletNodeOptions options = AudioWorkletNodeOptions(
       channelCount: numChannels,
@@ -198,62 +208,68 @@ class FlutterSoundMediaRecorderWeb {
     //messagePort = tMessagePort.fromDelegate(workletNode.port);
     //messagePort.onmessage = m;
 
-    streamNode.port.onmessage = (MessageEvent e) {
-      var x = e.type;
-      var y = e.origin;
-      var d = e.data;
-      var dd = d!.dartify() as Map;
-      var xx = dd['data'];
-      var k1 = dd['messageType'];
-      var k2 = dd['inputNo'];
-      var z = xx as JSArray;
-      var zz = z.toDart;
-      var bb = zz as List;
-      if (bb.length > 0) {
-        //for (Float32List ff in bb) {
-        //Float32List pp = ff!.dartify();
-        //Float32List ppp = ff!.toDart;
-        //var jj = pp.buffer;
-        //var g = ff.toDart;
-        //var gg = ff.buffer;
-        //print ('riri');
-        //}
-        List<t.ByteBuffer> r = [];
-        for (int channel = 0; channel < bb.length; ++channel) {
-          var c = bb[channel];
-          var cc = c as t.Float32List;
-          var ccc = cc.buffer;
-          r.add(ccc);
-          //var hhh = ccc.asUint8List();
-          //callback.interleavedRecording(data: hhh);
-          ///r.add(cc);
-        }
-        computeDbMaxLevel(r);
-        if (interleaved) {
-          if (codec == Codec.pcm16) {
-            interleaves16(callback, r);
-          } else {
-            interleaves32(callback, r);
+    //streamNode.port.onmessageerror =  (MessageEvent e) {
+    //callback.log(Level.error, 'Error on receiving a message on streamNode port');
+    //throw Exception('Error on receiving a message on streamNode port');
+    //}.toJS;
+
+    streamNode.port.onmessage =
+        (MessageEvent e) {
+          var x = e.type;
+          var y = e.origin;
+          var d = e.data;
+          var dd = d!.dartify() as Map;
+          var xx = dd['data'];
+          var k1 = dd['messageType'];
+          var k2 = dd['inputNo'];
+          var z = xx as JSArray;
+          var zz = z.toDart;
+          var bb = zz as List;
+          if (bb.length > 0) {
+            //for (Float32List ff in bb) {
+            //Float32List pp = ff!.dartify();
+            //Float32List ppp = ff!.toDart;
+            //var jj = pp.buffer;
+            //var g = ff.toDart;
+            //var gg = ff.buffer;
+            //print ('riri');
+            //}
+            List<t.ByteBuffer> r = [];
+            for (int channel = 0; channel < bb.length; ++channel) {
+              var c = bb[channel];
+              var cc = c as t.Float32List;
+              var ccc = cc.buffer;
+              r.add(ccc);
+              //var hhh = ccc.asUint8List();
+              //callback.interleavedRecording(data: hhh);
+              ///r.add(cc);
+            }
+            computeDbMaxLevel(r);
+            if (interleaved) {
+              if (codec == Codec.pcm16) {
+                interleaves16(callback, r);
+              } else {
+                interleaves32(callback, r);
+              }
+            } else {
+              if (codec == Codec.pcm16) {
+                planMode16(callback, r);
+              } else {
+                planMode32(callback, r);
+              }
+            }
+            //callback.interleavedRecording(data: r[0]);
+            var c = bb[0];
+            var cc = c as Float32List;
+            //callback.interleavedRecording(data: cc);
+            //var zzz = bb as List<Float32List>;
+            //var ff = zz as List<Float32List>;
+            //var ff = bb.dartify()  as List<Float32List>;
+            //print ('mimi');
           }
-        } else {
-          if (codec == Codec.pcm16) {
-            planMode16(callback, r);
-          } else {
-            planMode32(callback, r);
-          }
-        }
-        //callback.interleavedRecording(data: r[0]);
-        var c = bb[0];
-        var cc = c as Float32List;
-        //callback.interleavedRecording(data: cc);
-        //var zzz = bb as List<Float32List>;
-        //var ff = zz as List<Float32List>;
-        //var ff = bb.dartify()  as List<Float32List>;
-        //print ('mimi');
-      }
-      //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
-      //print('zozo');
-    }.toJS;
+          //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
+          //print('zozo');
+        }.toJS;
 
     //List<t.Float32List> data = xx.getProperty('data'.toJS);
     print('toto');
@@ -291,6 +307,7 @@ class FlutterSoundMediaRecorderWeb {
     }
     audioCtx?.close();
     audioCtx = null;
+    //streamNode = null;
   }
 
   Future<void> pauseRecorder() async {
@@ -319,10 +336,13 @@ class FlutterSoundMediaRecorderWeb {
         callback!.getSubscriptionDuration() != null &&
         callback!.getSubscriptionDuration() != Duration.zero) {
       maxAmplitude = 0;
-      onProgressTimer =
-          Timer.periodic(callback!.getSubscriptionDuration(), (Timer timer) {
+      onProgressTimer = Timer.periodic(callback!.getSubscriptionDuration(), (
+        Timer timer,
+      ) {
         callback?.updateRecorderProgress(
-            duration: 0, dbPeakLevel: toDB(previousAmplitude));
+          duration: 0,
+          dbPeakLevel: toDB(previousAmplitude),
+        );
         previousAmplitude = maxAmplitude;
         maxAmplitude = 0;
       });
@@ -378,6 +398,7 @@ class FlutterSoundMediaRecorderWeb {
     return db;
   }
 }
+
 /*
 //20 log (P/Pref)
 20*log10(x) = log2(x) / log2(10)
