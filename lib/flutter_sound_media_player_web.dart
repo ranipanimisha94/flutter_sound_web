@@ -67,11 +67,10 @@ class FlutterSoundMediaPlayerWeb {
       options,
     );
 
-    streamNode!.port.onmessage =
-        (MessageEvent e) {
-          print(e.origin);
-          print(e.type);
-        }.toJS;
+    streamNode!.port.onmessage = (MessageEvent e) {
+      print(e.origin);
+      print(e.type);
+    }.toJS;
 
     streamNode!.connect(audioCtx!.destination);
 
