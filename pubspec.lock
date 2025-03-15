@@ -57,10 +57,9 @@ packages:
   flutter_sound_platform_interface:
     dependency: "direct main"
     description:
-      name: flutter_sound_platform_interface
-      sha256: d43d605c490b65a8692fe74db83dd39ddc02608e3100c29667da9155789b505f
-      url: "https://pub.dev"
-    source: hosted
+      path: "../flutter_sound_platform_interface"
+      relative: true
+    source: path
     version: "9.25.9"
   flutter_test:
     dependency: "direct dev"

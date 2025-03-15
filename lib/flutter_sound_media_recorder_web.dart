@@ -35,6 +35,7 @@ import 'package:web/web.dart';
 typedef Message = dynamic;
 
 class FlutterSoundMediaRecorderWeb {
+   bool javascriptScriptLoaded = false;
   ///StreamSink<Uint8List>? streamSink;
   FlutterSoundRecorderCallback? callback;
   //Duration? _subscriptionDuration = Duration.zero;
@@ -168,11 +169,15 @@ class FlutterSoundMediaRecorderWeb {
     ;
      */
 
-    await audioCtx!.audioWorklet
-        .addModule(
-          "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
-        )
-        .toDart;
+    if (!javascriptScriptLoaded) {
+      await audioCtx!
+          .audioWorklet
+          .addModule(
+        "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
+      )
+          .toDart;
+      javascriptScriptLoaded = true;
+    }
     AudioWorkletNodeOptions options = AudioWorkletNodeOptions(
       channelCount: numChannels,
       numberOfInputs: 1,
@@ -212,14 +217,10 @@ class FlutterSoundMediaRecorderWeb {
     //throw Exception('Error on receiving a message on streamNode port');
     //}.toJS;
 
-    streamNode.port.onmessage = (MessageEvent e) {
-      var x = e.type;
-      var y = e.origin;
-      var d = e.data;
-      var dd = d!.dartify() as Map;
-      var xx = dd['data'];
-      var k1 = dd['messageType'];
-      var k2 = dd['inputNo'];
+    void receiveData(Map msg) {
+      var xx = msg['data'];
+      var k1 = msg['msgType'];
+      var k2 = msg['inputNo'];
       var z = xx as JSArray;
       var zz = z.toDart;
       var bb = zz as List;
@@ -264,13 +265,24 @@ class FlutterSoundMediaRecorderWeb {
         //var ff = zz as List<Float32List>;
         //var ff = bb.dartify()  as List<Float32List>;
         //print ('mimi');
+
+      }
+    }
+    streamNode.port.onmessage = (MessageEvent e) {
+      var x = e.type;
+      var y = e.origin;
+      var d = e.data;
+      var msg = d!.dartify() as Map;
+      var msgType = msg['msgType'];
+      switch (msgType) {
+        case 'RECEIVE_DATA': receiveData(msg); break;
       }
       //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
       //print('zozo');
     }.toJS;
 
     //List<t.Float32List> data = xx.getProperty('data'.toJS);
-    print('toto');
+    //print('toto');
 
     var constrains = MediaStreamConstraints(
       audio: true.toJS,
