@@ -37,6 +37,7 @@ class FlutterSoundMediaPlayerWeb {
    int numChannels = 1;
    bool interleaved = true;
    Codec codec = Codec.pcmFloat32;
+   int sampleRate = 16000;
   FlutterSoundPlayerCallback? callback;
   AudioWorkletNode? streamNode;
 
@@ -66,12 +67,13 @@ class FlutterSoundMediaPlayerWeb {
     this.callback = callback;
     this.interleaved = interleaved;
     this.numChannels = numChannels;
+    this.sampleRate = sampleRate;
     this.codec = codec;
     callback.log(Level.debug, 'Start startPlayerFromStream to Stream');
     //await AsyncWorkletNode.init();
     assert(audioCtx == null);
-    audioCtx = AudioContext();
-
+    AudioContextOptions audioCtxOptions = AudioContextOptions(sampleRate: sampleRate);
+    audioCtx = AudioContext(audioCtxOptions);
     if (!javascriptScriptLoaded) {
       await audioCtx!
           .audioWorklet

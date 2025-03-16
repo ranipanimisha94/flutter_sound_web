@@ -141,7 +141,8 @@ class FlutterSoundMediaRecorderWeb {
     callback.log(Level.debug, 'Start Recorder to Stream');
     //await AsyncWorkletNode.init();
     assert(audioCtx == null);
-    audioCtx = AudioContext();
+    AudioContextOptions audioCtxOptions = AudioContextOptions(sampleRate: sampleRate);
+    audioCtx = AudioContext(audioCtxOptions);
 
     /*
     var dest = audioCtx!.createMediaStreamDestination();

@@ -74,8 +74,15 @@ class FlutterSoundStreamProcessor extends AudioWorkletProcessor {
 
   uninterleaved(chunk, nbrChannels)
   {
-        let view = new DataView(chunk.buffer)
-        let frameSize = chunk.length / nbrChannels;
+        let view = new DataView(chunk.buffer);
+        let frameSize = 0;
+        if (this.isFloat32)
+        {
+            frameSize = chunk.length / (nbrChannels * 4);
+        } else
+        {
+            frameSize = chunk.length / (nbrChannels * 2);
+        }
         if (frameSize != Math.floor(frameSize))
         {
             this.port.postMessage({ 'msgType' : 'ERROR', 'message': 'Chunk size is not a multiple of nbrChannels'});
@@ -85,19 +92,19 @@ class FlutterSoundStreamProcessor extends AudioWorkletProcessor {
         for (let channel = 0; channel < nbrChannels; ++channel)
         {
              let x = [];
-             x.length = frameSize;
+             x.length = frameSize; // Resize the new chunk
              if (this.isFloat32)
              {
                  for (let i = 0; i < frameSize; ++i)
                  {
-                    x[i] = view.getFloat32(4 * chunk[i * nbrChannels + channel]);
+                    x[i] = view.getFloat32(4 * (i * nbrChannels + channel), true); // Here we suppose that the machine is little endian
                  }
 
              } else
              {
                  for (let i = 0; i < frameSize; ++i)
                  {
-                    x[i] = view.getInt16(2 * chunk[i * nbrChannels + channel]);
+                    x[i] = view.getInt16(2 * (i * nbrChannels + channel), true); // Here we suppose that the machine is little endian
                  }
              }
              r.push(x);
@@ -105,95 +112,130 @@ class FlutterSoundStreamProcessor extends AudioWorkletProcessor {
         return r;
   }
 
-  fillOutput(data, access, isInterleaved)
+  fillOutput(data, access)
   {
-
     let frameSize = data[0].length; // Probably 128
-    let pd = 0;
-    while (pd < frameSize)
+    let pd = 0; // pd is the destination position vy float32 elements
+    while (pd < frameSize && this.dataList.length > 0)
     {
-        if (this.dataList.length == 0)
-        {
-            if (this.isPlaying)
-            {
-                this.port.postMessage({ 'msgType' : 'NEED_SOME_FOOD' });
-                this.port.postMessage({ 'msgType' : 'BUFFER_UNDERFLOW' });
-            }
-            this.isPlaying = false;
-            return; // Nothing more to play
-        }
+        let chunk = this.dataList[0]; // the oldest chunk
         this.isPlaying = true;
-        let chunk = this.dataList[0];
-        if (isInterleaved)
-        {
-             chunk = this.uninterleaved(chunk, this.nbrChannels);
-        }
-        let nbrChannel = chunk.length;
-        if (nbrChannel > data.length)
-        {
-            nbrChannel = data.length;
-        }
-        let lnx = chunk[0].length;
+
+        //assert (chunk.length != this.nbrChannels);
+        //assert (this.nbrChannels != data.length);
+        let lnx = chunk[0].length; // Lnx is the length of the chunk in elements ( int16 or float32)
         if (lnx > frameSize - pd)
         {
             lnx = frameSize - pd; // We have enough data to play
         }
-        for (let channel = 0; channel < nbrChannel; ++channel)
+
+        // lnx is now the number of elements to copy
+        for (let channel = 0; channel < this.nbrChannels; ++channel)
         {
             for (let i = 0; i < lnx; ++i)
             {
                 data[channel][i] = access(chunk, channel, i); // chunk[channel][i];
             }
         }
-        let remain = chunk[0].length - lnx;
+        let remain = chunk[0].length - lnx; // The number of elements not copied
         if (remain == 0)
         {
             this.dataList.shift();
+            // break !
         } else
-        if (!isInterleaved)
         {
-            for (channel = 0; channel < nbrChannel; ++channel)
+            for (let channel = 0; channel < this.nbrChannels; ++channel)
             {
-                chunk[channel] = chunk[channel].slice(remain);
+                this.dataList[0][channel] = chunk[channel].slice(lnx); // A verifier
             }
-            this.dataList[0] = chunk;
-        } else
-        if (this.isFloat32)
-        {
-            this.dataList[0] = this.dataList[0].slice(4 * remain * nbrChannel);
-        } else
-        {
-            this.dataList[0] = this.dataList[0].slice(2 * remain * nbrChannel);
         }
 
         pd += lnx;
     }
+    return true;
   }
+
+
+  fillOutputInterleaved(data, access)
+  {
+
+    let frameSize = data[0].length; // Probably 128 (the number of Float32 wanted)
+    let pd = 0;// pd is the destination position for float32 elements
+    let n =  (this.isFloat32) ? 4 : 2;
+    while (pd < frameSize && this.dataList.length > 0)
+    {
+        let chunk = this.dataList[0]; // the oldest chunk
+        let view = new DataView(chunk.buffer);
+        //assert (chunk.length != this.nbrChannels);
+        //assert (this.nbrChannels != data.length);
+        let lnx = chunk.length / (n * this.nbrChannels);// Is the lnumber of elements in the chunk
+        if (lnx > frameSize - pd )
+        {
+            lnx = frameSize - pd; // We have enough data to play
+        }
+
+        // lnx is now the number of elements to copy
+        for (let channel = 0; channel < this.nbrChannels; ++channel)
+        {
+            for (let i = 0; i < lnx; ++i)
+            {
+                if (this.isFloat32)
+                {
+                    data[channel][pd + i] = view.getFloat32(4 * (i * this.nbrChannels + channel), true); // Here we suppose that the machine is little endian
+                } else
+                {
+                    data[channel][pd + i] = view.getInt16(2 * (i * this.nbrChannels + channel), true); // Here we suppose that the machine is little endian
+                }
+            }
+        }
+        let remain = chunk.length - lnx;
+        if (remain == 0)
+        {
+            this.dataList.shift();
+            // break !
+        } else
+        {
+                        let n = (this.isFloat32) ? 4 : 2;
+                        this.dataList[0] = this.dataList[0].slice(lnx * this.nbrChannels * n); // = chunk[channel].slice(lnx);
+        }
+
+        pd += lnx;
+    }
+    return true;
+  }
+
 
   send(outNo, data)
   {
-  /*
-    for (let channel = 0; channel < data.length; ++ channel)
+   if (this.dataList.length == 0)
     {
-        for (let i = 0; i < data.length; ++i)
+        if (this.isPlaying)
         {
-            let x = Math.random() * 2 - 1;
-            data[channel][i] = x;
+            this.port.postMessage({ 'msgType' : 'NEED_SOME_FOOD' });
+            this.port.postMessage({ 'msgType' : 'BUFFER_UNDERFLOW' });
         }
+        this.isPlaying = false;
+        return; // Nothing more to play
     }
-    */
-
-    //if (this.isInterleaved)
-    //{
-    //} else
+    this.isPlaying = true;
+    if (this.isInterleaved)
     {
         if (this.isFloat32)
         {
-            this.fillOutput(data, (chunk, channel, i) => chunk[channel][i], this.isInterleaved);
+            this.fillOutputInterleaved(data,  (chunk, channel, i) => chunk[channel][i]);
         } else
         {
-            this.fillOutput(data, (chunk, channel, i) => chunk[channel][i] / 32768, this.isInterleaved);
+            this.fillOutputInterleaved(data,  (chunk, channel, i) => chunk[channel][i] / 32768);
         }
+    } else
+    {
+            if (this.isFloat32)
+            {
+                this.fillOutput(data,  (chunk, channel, i) => chunk[channel][i]);
+            } else
+            {
+                this.fillOutput(data,  (chunk, channel, i) => chunk[channel][i] / 32768);
+            }
     }
     if (this.totalLn() < this.MIN_WAITING_LN)
     {
