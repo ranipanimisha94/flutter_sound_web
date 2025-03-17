@@ -32,30 +32,28 @@ import 'dart:js_util';
 //import 'package:etau/etau.dart';
 
 class FlutterSoundMediaPlayerWeb {
-   bool javascriptScriptLoaded = false;
+  bool javascriptScriptLoaded = false;
   AudioContext? audioCtx;
-   int numChannels = 1;
-   bool interleaved = true;
-   Codec codec = Codec.pcmFloat32;
-   int sampleRate = 16000;
+  int numChannels = 1;
+  bool interleaved = true;
+  Codec codec = Codec.pcmFloat32;
+  int sampleRate = 16000;
   FlutterSoundPlayerCallback? callback;
   AudioWorkletNode? streamNode;
 
+  void logMsg(Map msg) {
+    int level = msg['level'];
+    String message = msg['message'];
+    callback!.log(Level.values[level], message);
+  }
 
-   void logMsg(Map msg)
-   {
-     int level = msg['level'];
-     String message = msg['message'];
-     callback!.log(Level.values[level], message);
-   }
+  void error(Map msg) {
+    String message = msg['message'];
+    callback!.log(Level.error, message);
+    throw Exception(message);
+  }
 
-   void error(Map msg) {
-     String message = msg['message'];
-     callback!.log(Level.error, message);
-     throw Exception(message);
-   }
-
-   Future<int> startPlayerFromStream(
+  Future<int> startPlayerFromStream(
     FlutterSoundPlayerCallback callback, {
     Codec codec = Codec.pcm16,
     bool interleaved = true,
@@ -72,14 +70,16 @@ class FlutterSoundMediaPlayerWeb {
     callback.log(Level.debug, 'Start startPlayerFromStream to Stream');
     //await AsyncWorkletNode.init();
     assert(audioCtx == null);
-    AudioContextOptions audioCtxOptions = AudioContextOptions(sampleRate: sampleRate);
+    AudioContextOptions audioCtxOptions = AudioContextOptions(
+      sampleRate: sampleRate,
+    );
     audioCtx = AudioContext(audioCtxOptions);
     if (!javascriptScriptLoaded) {
-      await audioCtx!
-          .audioWorklet
+      await audioCtx!.audioWorklet
           .addModule(
-        "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
-      ).toDart;
+            "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
+          )
+          .toDart;
       javascriptScriptLoaded = true;
     }
     AudioWorkletNodeOptions options = AudioWorkletNodeOptions(
@@ -93,23 +93,30 @@ class FlutterSoundMediaPlayerWeb {
       "flutter-sound-stream-processor",
       options,
     );
-    
 
-    streamNode!.port.onmessage = (MessageEvent e) {
-      var x = e.type;
-      var y = e.origin;
-      var d = e.data;
-      var msg = d!.dartify() as Map;
-      var msgType = msg['msgType'];
-      switch (msgType) {
-        case 'NEED_SOME_FOOD': callback.needSomeFood(0); break;
-        case 'LOG': logMsg(msg); break;
-        case 'BUFFER_UNDERFLOW': callback.audioPlayerFinished(1); break;
-        case 'ERROR': error(msg);
-      }
-      //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
-      //print('zozo');
-    }.toJS;
+    streamNode!.port.onmessage =
+        (MessageEvent e) {
+          var x = e.type;
+          var y = e.origin;
+          var d = e.data;
+          var msg = d!.dartify() as Map;
+          var msgType = msg['msgType'];
+          switch (msgType) {
+            case 'NEED_SOME_FOOD':
+              callback.needSomeFood(0);
+              break;
+            case 'LOG':
+              logMsg(msg);
+              break;
+            case 'BUFFER_UNDERFLOW':
+              callback.audioPlayerFinished(1);
+              break;
+            case 'ERROR':
+              error(msg);
+          }
+          //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
+          //print('zozo');
+        }.toJS;
 
     JSObject obj = JSObject();
     setProperty(obj, 'msgType', 'START_PLAYER');
@@ -154,23 +161,33 @@ class FlutterSoundMediaPlayerWeb {
 
   Future<int> feed({required t.Uint8List data}) async {
     postMessage('SEND_FEED_UINT8', data.toJS);
-      return 0;
+    return 0;
   }
 
   Future<int> feedFloat32({required List<t.Float32List> data}) async {
-     if (codec != Codec.pcmFloat32) {
-       callback!.log(Level.error, 'Cannot feed with Float32 on a Codec <> pcmFloat32');
-       throw Exception('Cannot feed with Float32 with interleaved mode');
-     }
-    if (interleaved) {
-      callback!.log(Level.error, 'Cannot feed with Float32 with interleaved mode');
+    if (codec != Codec.pcmFloat32) {
+      callback!.log(
+        Level.error,
+        'Cannot feed with Float32 on a Codec <> pcmFloat32',
+      );
       throw Exception('Cannot feed with Float32 with interleaved mode');
     }
-    if (data.length != numChannels)
-      {
-        callback!.log(Level.error, 'feedFloat32() : data length (${data.length}) != the number of channels ($numChannels)');
-        throw Exception('feedFloat32() : data length (${data.length}) != the number of channels ($numChannels)');
-      }
+    if (interleaved) {
+      callback!.log(
+        Level.error,
+        'Cannot feed with Float32 with interleaved mode',
+      );
+      throw Exception('Cannot feed with Float32 with interleaved mode');
+    }
+    if (data.length != numChannels) {
+      callback!.log(
+        Level.error,
+        'feedFloat32() : data length (${data.length}) != the number of channels ($numChannels)',
+      );
+      throw Exception(
+        'feedFloat32() : data length (${data.length}) != the number of channels ($numChannels)',
+      );
+    }
     List<JSAny> r = [];
     for (int channel = 0; channel < data.length; ++channel) {
       r.add(data[channel].toJS);
@@ -182,17 +199,27 @@ class FlutterSoundMediaPlayerWeb {
 
   Future<int> feedInt16({required List<t.Int16List> data}) async {
     if (codec != Codec.pcm16) {
-      callback!.log(Level.error, 'Cannot feed with feedInt16 on a Codec <> pcm16');
+      callback!.log(
+        Level.error,
+        'Cannot feed with feedInt16 on a Codec <> pcm16',
+      );
       throw Exception('Cannot feed with Float32 with interleaved mode');
     }
     if (interleaved) {
-      callback!.log(Level.error, 'Cannot feed with feedInt16 with interleaved mode');
+      callback!.log(
+        Level.error,
+        'Cannot feed with feedInt16 with interleaved mode',
+      );
       throw Exception('Cannot feed with Float32 with interleaved mode');
     }
-    if (data.length != numChannels)
-    {
-      callback!.log(Level.error, 'feedFloat32() : data length (${data.length}) != the number of channels ($numChannels)');
-      throw Exception('feedFloat32() : data length (${data.length}) != the number of channels ($numChannels)');
+    if (data.length != numChannels) {
+      callback!.log(
+        Level.error,
+        'feedFloat32() : data length (${data.length}) != the number of channels ($numChannels)',
+      );
+      throw Exception(
+        'feedFloat32() : data length (${data.length}) != the number of channels ($numChannels)',
+      );
     }
     List<JSAny> r = [];
     for (int channel = 0; channel < data.length; ++channel) {

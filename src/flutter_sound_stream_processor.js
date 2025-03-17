@@ -134,7 +134,10 @@ class FlutterSoundStreamProcessor extends AudioWorkletProcessor {
         {
             for (let i = 0; i < lnx; ++i)
             {
-                data[channel][i] = access(chunk, channel, i); // chunk[channel][i];
+                data[channel][i + pd] = access(chunk, channel, i); // chunk[channel][i];
+
+
+
             }
         }
         let remain = chunk[0].length - lnx; // The number of elements not copied
@@ -184,18 +187,17 @@ class FlutterSoundStreamProcessor extends AudioWorkletProcessor {
                     data[channel][pd + i] = view.getFloat32(4 * (i * this.nbrChannels + channel), true); // Here we suppose that the machine is little endian
                 } else
                 {
-                    data[channel][pd + i] = view.getInt16(2 * (i * this.nbrChannels + channel), true); // Here we suppose that the machine is little endian
+                    data[channel][pd + i] = view.getInt16(2 * (i * this.nbrChannels + channel), true) / 32768; // Here we suppose that the machine is little endian
                 }
             }
         }
-        let remain = chunk.length - lnx;
+        let remain = chunk.length / (n * this.nbrChannels) - lnx; // Remaining samples in the source
         if (remain == 0)
         {
             this.dataList.shift();
             // break !
         } else
         {
-                        let n = (this.isFloat32) ? 4 : 2;
                         this.dataList[0] = this.dataList[0].slice(lnx * this.nbrChannels * n); // = chunk[channel].slice(lnx);
         }
 

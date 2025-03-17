@@ -22,7 +22,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
-import 'dart:typed_data' as t
+import 'dart:typed_data'
+    as t
     show Float32List, Uint8List, Int16List, ByteBuffer;
 import 'package:logger/logger.dart' show Level;
 import 'package:web/web.dart' as web;
@@ -35,7 +36,8 @@ import 'package:web/web.dart';
 typedef Message = dynamic;
 
 class FlutterSoundMediaRecorderWeb {
-   bool javascriptScriptLoaded = false;
+  bool javascriptScriptLoaded = false;
+
   ///StreamSink<Uint8List>? streamSink;
   FlutterSoundRecorderCallback? callback;
   //Duration? _subscriptionDuration = Duration.zero;
@@ -141,7 +143,9 @@ class FlutterSoundMediaRecorderWeb {
     callback.log(Level.debug, 'Start Recorder to Stream');
     //await AsyncWorkletNode.init();
     assert(audioCtx == null);
-    AudioContextOptions audioCtxOptions = AudioContextOptions(sampleRate: sampleRate);
+    AudioContextOptions audioCtxOptions = AudioContextOptions(
+      sampleRate: sampleRate,
+    );
     audioCtx = AudioContext(audioCtxOptions);
 
     /*
@@ -171,11 +175,10 @@ class FlutterSoundMediaRecorderWeb {
      */
 
     if (!javascriptScriptLoaded) {
-      await audioCtx!
-          .audioWorklet
+      await audioCtx!.audioWorklet
           .addModule(
-        "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
-      )
+            "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
+          )
           .toDart;
       javascriptScriptLoaded = true;
     }
@@ -266,21 +269,24 @@ class FlutterSoundMediaRecorderWeb {
         //var ff = zz as List<Float32List>;
         //var ff = bb.dartify()  as List<Float32List>;
         //print ('mimi');
-
       }
     }
-    streamNode.port.onmessage = (MessageEvent e) {
-      var x = e.type;
-      var y = e.origin;
-      var d = e.data;
-      var msg = d!.dartify() as Map;
-      var msgType = msg['msgType'];
-      switch (msgType) {
-        case 'RECEIVE_DATA': receiveData(msg); break;
-      }
-      //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
-      //print('zozo');
-    }.toJS;
+
+    streamNode.port.onmessage =
+        (MessageEvent e) {
+          var x = e.type;
+          var y = e.origin;
+          var d = e.data;
+          var msg = d!.dartify() as Map;
+          var msgType = msg['msgType'];
+          switch (msgType) {
+            case 'RECEIVE_DATA':
+              receiveData(msg);
+              break;
+          }
+          //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
+          //print('zozo');
+        }.toJS;
 
     //List<t.Float32List> data = xx.getProperty('data'.toJS);
     //print('toto');
@@ -316,7 +322,7 @@ class FlutterSoundMediaRecorderWeb {
     if (audioCtx != null && audioCtx!.state == 'running') {
       closeOnProgress();
     }
-    audioCtx?.close();
+    await audioCtx?.close().toDart;
     audioCtx = null;
     //streamNode = null;
   }
