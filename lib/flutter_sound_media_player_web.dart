@@ -150,6 +150,7 @@ class FlutterSoundMediaPlayerWeb {
     // mic.disconnect();
     //streamNode?.stop();
     //streamNode?.disconnect();
+    streamNode!.disconnect();
     await audioCtx?.close().toDart;
     streamNode = null;
     audioCtx = null;

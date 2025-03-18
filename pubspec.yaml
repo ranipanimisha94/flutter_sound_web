@@ -28,8 +28,8 @@ flutter:
   - src/flutter_sound_stream_processor.js
 
 dependencies:
-  flutter_sound_platform_interface: 9.26.0
-#    path: ../flutter_sound_platform_interface # Flutter Sound Dir
+  flutter_sound_platform_interface: # 9.26.0
+    path: ../flutter_sound_platform_interface # Flutter Sound Dir
 
 ##  etau: ^0.0.14-alpha.5
 ##    path: ../../tau/etau # etau Dir
