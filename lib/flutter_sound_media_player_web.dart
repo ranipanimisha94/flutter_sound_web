@@ -94,29 +94,28 @@ class FlutterSoundMediaPlayerWeb {
       options,
     );
 
-    streamNode!.port.onmessage =
-        (MessageEvent e) {
-          var x = e.type;
-          var y = e.origin;
-          var d = e.data;
-          var msg = d!.dartify() as Map;
-          var msgType = msg['msgType'];
-          switch (msgType) {
-            case 'NEED_SOME_FOOD':
-              callback.needSomeFood(0);
-              break;
-            case 'LOG':
-              logMsg(msg);
-              break;
-            case 'BUFFER_UNDERFLOW':
-              callback.audioPlayerFinished(1);
-              break;
-            case 'ERROR':
-              error(msg);
-          }
-          //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
-          //print('zozo');
-        }.toJS;
+    streamNode!.port.onmessage = (MessageEvent e) {
+      var x = e.type;
+      var y = e.origin;
+      var d = e.data;
+      var msg = d!.dartify() as Map;
+      var msgType = msg['msgType'];
+      switch (msgType) {
+        case 'NEED_SOME_FOOD':
+          callback.needSomeFood(0);
+          break;
+        case 'LOG':
+          logMsg(msg);
+          break;
+        case 'BUFFER_UNDERFLOW':
+          callback.audioPlayerFinished(1);
+          break;
+        case 'ERROR':
+          error(msg);
+      }
+      //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
+      //print('zozo');
+    }.toJS;
 
     JSObject obj = JSObject();
     setProperty(obj, 'msgType', 'START_PLAYER');
