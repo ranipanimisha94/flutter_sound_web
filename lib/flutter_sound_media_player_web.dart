@@ -22,11 +22,12 @@ import 'dart:async';
 import 'package:flutter_sound_platform_interface/flutter_sound_platform_interface.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_player_platform_interface.dart';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'package:web/web.dart';
 //import 'dart:typed_data';
 import 'package:logger/logger.dart' show Level;
 import 'dart:typed_data' as t show Float32List, Uint8List, Int16List;
-import 'dart:js_util';
+//import 'dart:js_util';
 
 //import 'package:tau_web/tau_web.dart';
 //import 'package:etau/etau.dart';
@@ -118,10 +119,14 @@ class FlutterSoundMediaPlayerWeb {
     }.toJS;
 
     JSObject obj = JSObject();
-    setProperty(obj, 'msgType', 'START_PLAYER');
-    setProperty(obj, 'isFloat32', codec == Codec.pcmFloat32);
-    setProperty(obj, 'nbrChannels', numChannels);
-    setProperty(obj, 'isInterleaved', interleaved);
+    obj['msgType'] = 'START_PLAYER'.toJS;
+    //setProperty(obj, 'msgType', 'START_PLAYER');
+    obj.setProperty('isFloat32'.toJS, (codec == Codec.pcmFloat32).toJS);
+    //setProperty(obj, 'isFloat32', codec == Codec.pcmFloat32);
+    obj.setProperty('nbrChannels'.toJS, numChannels.toJS);
+    //setProperty(obj, 'nbrChannels', numChannels);
+    obj.setProperty('isInterleaved'.toJS, interleaved.toJS);
+    //setProperty(obj, 'isInterleaved', interleaved);
     streamNode!.port.postMessage(obj);
 
     streamNode!.connect(audioCtx!.destination);
@@ -137,8 +142,8 @@ class FlutterSoundMediaPlayerWeb {
 
   void postMessage(String message, JSAny? data) {
     JSObject obj = JSObject();
-    setProperty(obj, 'msgType', message);
-    setProperty(obj, 'data', data);
+    obj.setProperty('msgType'.toJS, message.toJS);
+    obj.setProperty('data'.toJS, data);
     streamNode!.port.postMessage(obj);
   }
 

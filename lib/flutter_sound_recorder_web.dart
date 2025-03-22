@@ -198,19 +198,26 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     }
   }
 
+  static bool _alreadyInited = false;
+
   /// The current state of the Recorder
   @override
   RecorderState get recorderState => RecorderState.isStopped; // TODO
 
   @override
   Future<bool> initPlugin() async {
-    //print('Loading scripts');
-    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/howler/howler.js');
-    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/src/flutter_sound.js');
-    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/src/flutter_sound_recorder.js');
+    if (!_alreadyInited) {
+      //print('Loading scripts');
+      await FlutterSoundPlugin.loadScript(
+          './assets/packages/flutter_sound_web/howler/howler.js');
+      await FlutterSoundPlugin.loadScript(
+          './assets/packages/flutter_sound_web/src/flutter_sound.js');
+      await FlutterSoundPlugin.loadScript(
+          './assets/packages/flutter_sound_web/src/flutter_sound_recorder.js');
+      _alreadyInited = true;
+    }
     return true;
   }
-
 
   @override
   Future<void>? resetPlugin(FlutterSoundRecorderCallback callback) async {

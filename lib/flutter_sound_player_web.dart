@@ -234,16 +234,22 @@ class FlutterSoundPlayerWeb
 
   //==============================================================================================================================
 
+  static bool _alreadyInited = false;
 
   @override
   Future<bool> initPlugin() async {
-    //print('Loading scripts');
-    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/howler/howler.js');
-    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/src/flutter_sound.js');
-    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/src/flutter_sound_player.js');
+    if (!_alreadyInited) {
+      //print('Loading scripts');
+      await FlutterSoundPlugin.loadScript(
+          './assets/packages/flutter_sound_web/howler/howler.js');
+      await FlutterSoundPlugin.loadScript(
+          './assets/packages/flutter_sound_web/src/flutter_sound.js');
+      await FlutterSoundPlugin.loadScript(
+          './assets/packages/flutter_sound_web/src/flutter_sound_player.js');
+      _alreadyInited = true;
+    }
     return true;
   }
-
 
   @override
   Future<void>? resetPlugin(FlutterSoundPlayerCallback callback) {

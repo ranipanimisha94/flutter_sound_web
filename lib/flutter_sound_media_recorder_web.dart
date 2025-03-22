@@ -25,7 +25,7 @@ import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform
 import 'dart:typed_data' as t
     show Float32List, Uint8List, Int16List, ByteBuffer;
 import 'package:logger/logger.dart' show Level;
-import 'package:web/web.dart' as web;
+//import 'package:web/web.dart' as web;
 //import 'package:tau_web/tau_web.dart';
 //import 'package:etau/etau.dart';
 import 'dart:js_interop';
@@ -173,14 +173,14 @@ class FlutterSoundMediaRecorderWeb {
     ;
      */
 
-    if (!javascriptScriptLoaded) {
-      await audioCtx!.audioWorklet
-          .addModule(
-            "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
-          )
-          .toDart;
-      javascriptScriptLoaded = true;
-    }
+    //if (!javascriptScriptLoaded) {
+    await audioCtx!.audioWorklet
+        .addModule(
+          "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
+        )
+        .toDart;
+    javascriptScriptLoaded = true;
+    //}
     AudioWorkletNodeOptions options = AudioWorkletNodeOptions(
       channelCount: numChannels,
       numberOfInputs: 1,
@@ -221,6 +221,7 @@ class FlutterSoundMediaRecorderWeb {
     //}.toJS;
 
     void receiveData(Map msg) {
+      //print('receiveData');
       var xx = msg['data'];
       var k1 = msg['msgType'];
       var k2 = msg['inputNo'];
@@ -272,6 +273,7 @@ class FlutterSoundMediaRecorderWeb {
     }
 
     streamNode.port.onmessage = (MessageEvent e) {
+      //print('onmessage');
       var x = e.type;
       var y = e.origin;
       var d = e.data;
@@ -293,7 +295,8 @@ class FlutterSoundMediaRecorderWeb {
       audio: true.toJS,
       video: false.toJS,
     );
-    MediaDevices mds = web.window.navigator.mediaDevices;
+    //print('window.navigator.mediaDevices');
+    MediaDevices mds = window.navigator.mediaDevices;
     var mediaStream = await mds.getUserMedia(constrains).toDart;
     var mic = audioCtx!.createMediaStreamSource(mediaStream);
     setOnProgress();

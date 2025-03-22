@@ -21,8 +21,9 @@
 import 'dart:async';
 //import 'dart:html' as html;
 import 'package:web/web.dart';
-import 'dart:js_util';
+//import 'dart:js_util';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 //import 'package:meta/meta.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
@@ -159,29 +160,32 @@ bool isJsLibraryImported(String url, {required String flutterPluginName}) {
 }
 */
 
-
 /// The web implementation of [FlutterSoundRecorderPlatform].
 ///
 /// This class implements the `package:FlutterSoundPlayerPlatform` functionality for the web.
 class FlutterSoundPlugin //extends FlutterSoundPlatform
 {
-
   static Future<bool> loadScript(String scriptName) async {
     //print('Loding $scriptName');
     Logger().i('Loding $scriptName');
     Element newScript = document.createElement('script');
-    setProperty(newScript, 'src', scriptName);
-    setProperty(newScript, 'type', 'text/javascript');
-    setProperty(newScript, 'async', 'true');
+    newScript.setProperty('src'.toJS, scriptName.toJS);
+    newScript.setProperty('type'.toJS, 'text/javascript'.toJS);
+    newScript.setProperty('async'.toJS, true.toJS);
     Completer<bool> completer = Completer<bool>();
 
-    setProperty(newScript, 'onload', (MessageEvent e) {
-      completer.complete(true);
-    }.toJS);
+    newScript.setProperty(
+        'onload'.toJS,
+        (MessageEvent e) {
+          completer.complete(true);
+        }.toJS);
 
-    setProperty(newScript, 'onerror', (MessageEvent e) {
-      completer.completeError(AssertionError('Cannot load script $scriptName'));
-    }.toJS);
+    newScript.setProperty(
+        'onerror'.toJS,
+        (MessageEvent e) {
+          completer
+              .completeError(AssertionError('Cannot load script $scriptName'));
+        }.toJS);
 
     //newScript.onload = () => console.log(`${file} loaded successfully.`);
     //newScript.onerror = () => console.error(`Error loading script: ${file}`);
@@ -189,7 +193,6 @@ class FlutterSoundPlugin //extends FlutterSoundPlatform
     document.head!.appendChild(newScript);
     return completer!.future;
   }
-
 
   /// Registers this class as the default instance of [FlutterSoundPlatform].
   static void registerWith(Registrar registrar) {
