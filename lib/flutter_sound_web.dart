@@ -19,7 +19,10 @@
  */
 
 import 'dart:async';
-import 'dart:html' as html;
+//import 'dart:html' as html;
+import 'package:web/web.dart';
+import 'dart:js_util';
+import 'dart:js_interop';
 
 //import 'package:meta/meta.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
@@ -27,6 +30,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:flutter_sound_web/flutter_sound_player_web.dart';
 import 'package:flutter_sound_web/flutter_sound_recorder_web.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart' show Level, Logger;
 
 var mime_types = [
   'audio/webm\;codecs=opus', // defaultCodec,
@@ -49,7 +53,7 @@ var mime_types = [
   'audio/webm\;codecs=opus', // opusWebM,
   'audio/webm\;codecs=vorbis', // vorbisWebM
 ];
-
+/*
 class ImportJsLibraryWeb {
   /// Injects the library by its [url]
   static Future<void> import(String url) {
@@ -145,6 +149,7 @@ void importJsLibrary({required String url, required String flutterPluginName}) {
   });
 }
 
+
 bool isJsLibraryImported(String url, {required String flutterPluginName}) {
   //if (flutterPluginName == null) {
   //        return ImportJsLibrary.isImported(url);
@@ -152,19 +157,45 @@ bool isJsLibraryImported(String url, {required String flutterPluginName}) {
   return ImportJsLibrary.isImported(_libraryUrl(url, flutterPluginName));
   //}
 }
+*/
+
 
 /// The web implementation of [FlutterSoundRecorderPlatform].
 ///
 /// This class implements the `package:FlutterSoundPlayerPlatform` functionality for the web.
 class FlutterSoundPlugin //extends FlutterSoundPlatform
 {
-  static int _numberOfScripts = 4;
-  static Completer ScriptLoaded = Completer();
+
+  static Future<bool> loadScript(String scriptName) async {
+    //print('Loding $scriptName');
+    Logger().i('Loding $scriptName');
+    Element newScript = document.createElement('script');
+    setProperty(newScript, 'src', scriptName);
+    setProperty(newScript, 'type', 'text/javascript');
+    setProperty(newScript, 'async', 'true');
+    Completer<bool> completer = Completer<bool>();
+
+    setProperty(newScript, 'onload', (MessageEvent e) {
+      completer.complete(true);
+    }.toJS);
+
+    setProperty(newScript, 'onerror', (MessageEvent e) {
+      completer.completeError(AssertionError('Cannot load script $scriptName'));
+    }.toJS);
+
+    //newScript.onload = () => console.log(`${file} loaded successfully.`);
+    //newScript.onerror = () => console.error(`Error loading script: ${file}`);
+
+    document.head!.appendChild(newScript);
+    return completer!.future;
+  }
+
 
   /// Registers this class as the default instance of [FlutterSoundPlatform].
   static void registerWith(Registrar registrar) {
     FlutterSoundPlayerWeb.registerWith(registrar);
     FlutterSoundRecorderWeb.registerWith(registrar);
+    /*
     importJsLibrary(
       url: "./howler/howler.js",
       flutterPluginName: "flutter_sound_web",
@@ -181,5 +212,7 @@ class FlutterSoundPlugin //extends FlutterSoundPlatform
       url: "./src/flutter_sound_recorder.js",
       flutterPluginName: "flutter_sound_web",
     );
+
+     */
   }
 }

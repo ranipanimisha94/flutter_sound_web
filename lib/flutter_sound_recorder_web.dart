@@ -28,6 +28,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:logger/logger.dart' show Level;
 import 'flutter_sound_media_recorder_web.dart';
 import 'dart:js_interop';
+import 'flutter_sound_web.dart';
 
 //========================================  JS  ===============================================================
 
@@ -200,6 +201,16 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
   /// The current state of the Recorder
   @override
   RecorderState get recorderState => RecorderState.isStopped; // TODO
+
+  @override
+  Future<bool> initPlugin() async {
+    //print('Loading scripts');
+    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/howler/howler.js');
+    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/src/flutter_sound.js');
+    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/src/flutter_sound_recorder.js');
+    return true;
+  }
+
 
   @override
   Future<void>? resetPlugin(FlutterSoundRecorderCallback callback) async {

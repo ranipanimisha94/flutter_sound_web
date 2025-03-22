@@ -30,6 +30,7 @@ import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'dart:js_interop';
 import 'package:logger/logger.dart' show Level;
 import 'flutter_sound_media_player_web.dart';
+import 'flutter_sound_web.dart';
 
 // ====================================  JS  =======================================================
 
@@ -232,6 +233,17 @@ class FlutterSoundPlayerWeb
   }
 
   //==============================================================================================================================
+
+
+  @override
+  Future<bool> initPlugin() async {
+    //print('Loading scripts');
+    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/howler/howler.js');
+    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/src/flutter_sound.js');
+    await FlutterSoundPlugin.loadScript('./assets/packages/flutter_sound_web/src/flutter_sound_player.js');
+    return true;
+  }
+
 
   @override
   Future<void>? resetPlugin(FlutterSoundPlayerCallback callback) {
