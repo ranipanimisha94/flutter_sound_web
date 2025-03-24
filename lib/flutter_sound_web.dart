@@ -194,6 +194,23 @@ class FlutterSoundPlugin //extends FlutterSoundPlatform
     return completer!.future;
   }
 
+  static bool _alreadyInited = false;
+  static Future<bool> loadScripts() async {
+    if (!_alreadyInited) {
+      //print('Loading scripts');
+      await loadScript('./assets/packages/flutter_sound_web/howler/howler.js');
+      await loadScript(
+          './assets/packages/flutter_sound_web/src/flutter_sound.js');
+      await loadScript(
+          './assets/packages/flutter_sound_web/src/flutter_sound_player.js');
+      await FlutterSoundPlugin.loadScript(
+          './assets/packages/flutter_sound_web/src/flutter_sound_recorder.js');
+
+      _alreadyInited = true;
+    }
+    return true;
+  }
+
   /// Registers this class as the default instance of [FlutterSoundPlatform].
   static void registerWith(Registrar registrar) {
     FlutterSoundPlayerWeb.registerWith(registrar);

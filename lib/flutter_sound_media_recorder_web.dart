@@ -47,6 +47,10 @@ class FlutterSoundMediaRecorderWeb {
   StreamSink<t.Uint8List>? toStream;
   StreamSink<List<t.Float32List>>? toStreamFloat32;
   StreamSink<List<t.Int16List>>? toStreamInt16;
+  late Codec codec;
+  int sampleRate = 16000;
+  int numChannels = 1;
+  bool interleaved = false;
 
   // The Audio Context
   AudioContext? audioCtx;
@@ -119,6 +123,107 @@ class FlutterSoundMediaRecorderWeb {
     callBack.recordingDataFloat32(data: r);
   }
 
+  void receiveData(Map msg) {
+    var xx = msg['data'];
+    //var k1 = msg['msgType'];
+    //var k2 = msg['inputNo'];
+    /*
+    print (xx.runtimeType);
+    if (! (xx is JSArray)) {
+      print (xx.runtimeType);
+      print(xx);
+      return;
+    }
+
+     */
+    var bb = xx as List<Object?>;
+    //var zz = z.toDart;
+    //var bb = zz as List;
+    if (bb.length > 0) {
+      List<t.ByteBuffer> r = [];
+      for (int channel = 0; channel < bb.length; ++channel) {
+        var c = bb[channel];
+        var cc = c as t.Float32List;
+        var ccc = cc.buffer;
+        r.add(ccc);
+      }
+      computeDbMaxLevel(r);
+      if (interleaved) {
+        if (codec == Codec.pcm16) {
+          interleaves16(callback!, r);
+        } else {
+          interleaves32(callback!, r);
+        }
+      } else {
+        if (codec == Codec.pcm16) {
+          planMode16(callback!, r);
+        } else {
+          planMode32(callback!, r);
+        }
+      }
+      //var c = bb[0];
+      //var cc = c as Float32List;
+    }
+  }
+
+  void onMessage(MessageEvent e) {
+    var x = e.type;
+    var y = e.origin;
+    var d = e.data;
+    var msg = d!.dartify() as Map;
+    var msgType = msg['msgType'];
+    switch (msgType) {
+      case 'RECEIVE_DATA':
+        receiveData(msg);
+        break;
+    }
+  }
+
+  Future<void> _startRecorderToStream({
+    required Codec codec,
+    required int sampleRate,
+    required int numchannels,
+    required bool interleaved,
+  }) async {
+    assert(audioCtx == null);
+    AudioContextOptions audioCtxOptions = AudioContextOptions(
+      sampleRate: sampleRate,
+    );
+    audioCtx = AudioContext(audioCtxOptions);
+/*******/
+    await audioCtx!.audioWorklet
+        .addModule(
+          "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
+        )
+        .toDart;
+    javascriptScriptLoaded = true;
+    AudioWorkletNodeOptions options = AudioWorkletNodeOptions(
+      channelCount: numChannels,
+      numberOfInputs: 1,
+      numberOfOutputs: 0,
+    );
+    var streamNode = AudioWorkletNode(
+      audioCtx!,
+      "flutter-sound-stream-processor",
+      options,
+    );
+
+    streamNode.port.onmessage = onMessage.toJS;
+/*****/
+    //AudioDestinationNode dest = audioCtx!.destination;
+
+    var constrains = MediaStreamConstraints(
+      audio: true.toJS,
+      video: false.toJS,
+    );
+    MediaDevices mds = window.navigator.mediaDevices;
+    var mediaStream = await mds.getUserMedia(constrains).toDart;
+    var mic = audioCtx!.createMediaStreamSource(mediaStream);
+    setOnProgress();
+    mic.connect(streamNode);
+    //mic.connect(dest);
+  }
+
   Future<void> startRecorderToStream(
     FlutterSoundRecorderCallback callback, {
     required Codec codec,
@@ -138,170 +243,17 @@ class FlutterSoundMediaRecorderWeb {
     this.toStream = toStream;
     this.toStreamFloat32 = toStreamFloat32;
     this.toStreamInt16 = toStreamInt16;
+    this.codec = codec;
+    this.sampleRate = sampleRate;
+    this.numChannels = numChannels;
+    this.interleaved = interleaved;
 
     callback.log(Level.debug, 'Start Recorder to Stream');
-    //await AsyncWorkletNode.init();
-    assert(audioCtx == null);
-    AudioContextOptions audioCtxOptions = AudioContextOptions(
-      sampleRate: sampleRate,
-    );
-    audioCtx = AudioContext(audioCtxOptions);
-
-    /*
-    var dest = audioCtx!.createMediaStreamDestination();
-    const Map options = {
-    'audioBitsPerSecond': 128000,
-    'mimeType': "audio/pcm",};
-
-    var mediaRecorder = MediaRecorder(dest.stream, );
-    //mediaRecorder.mimeType = "audio/pcm";
-    mediaRecorder.ondataavailable =
-        (JSObject e) {
-          Blob x = getProperty(e, 'data');
-          var stream = x.stream();
-          var xx = x.arrayBuffer().toDart;
-          xx.then( ( v) {
-            var xxx = v.toDart;
-            var xxxx = xxx.asUint8List();
-            var yyyy = xxx.asInt16List();
-            var zzzz = xxx.asFloat32List();
-            callback.interleavedRecording(data: xxxx);
-            print ('xxx');
-          });
-          print('toto');
-        }.toJS;
-    ;
-     */
-
-    //if (!javascriptScriptLoaded) {
-    await audioCtx!.audioWorklet
-        .addModule(
-          "./assets/packages/flutter_sound_web/src/flutter_sound_stream_processor.js",
-        )
-        .toDart;
-    javascriptScriptLoaded = true;
-    //}
-    AudioWorkletNodeOptions options = AudioWorkletNodeOptions(
-      channelCount: numChannels,
-      numberOfInputs: 1,
-      numberOfOutputs: 0,
-    );
-    var streamNode = AudioWorkletNode(
-      audioCtx!,
-      "flutter-sound-stream-processor",
-      options,
-    );
-
-    var m = (Map<String, JSAny> e) {
-      //print('titi');
-      /*
-        var msg = e['msg'].toJS;
-        String msgType = msg.getProperty('messageType'.toJS);
-        switch (msgType) {
-          case 'AUDIO_BUFFER_UNDERFLOW':
-            int outputNo =
-                (msg.getProperty('outputNo'.toJS) as JSNumber).toDartInt;
-            //_onAudioBufferUnderflow(outputNo);
-            break;
-          case 'RECEIVE_DATA': // Receive data from source to destination
-            List<t.Float32List> data = msg.getProperty('data'.toJS);
-            int inputNo = (msg.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
-            //_onReceiveData(inputNo, data);
-            break;
-        }
-
-         */
-    };
-    //messagePort = tMessagePort.fromDelegate(workletNode.port);
-    //messagePort.onmessage = m;
-
-    //streamNode.port.onmessageerror =  (MessageEvent e) {
-    //callback.log(Level.error, 'Error on receiving a message on streamNode port');
-    //throw Exception('Error on receiving a message on streamNode port');
-    //}.toJS;
-
-    void receiveData(Map msg) {
-      //print('receiveData');
-      var xx = msg['data'];
-      var k1 = msg['msgType'];
-      var k2 = msg['inputNo'];
-      var z = xx as JSArray;
-      var zz = z.toDart;
-      var bb = zz as List;
-      if (bb.length > 0) {
-        //for (Float32List ff in bb) {
-        //Float32List pp = ff!.dartify();
-        //Float32List ppp = ff!.toDart;
-        //var jj = pp.buffer;
-        //var g = ff.toDart;
-        //var gg = ff.buffer;
-        //print ('riri');
-        //}
-        List<t.ByteBuffer> r = [];
-        for (int channel = 0; channel < bb.length; ++channel) {
-          var c = bb[channel];
-          var cc = c as t.Float32List;
-          var ccc = cc.buffer;
-          r.add(ccc);
-          //var hhh = ccc.asUint8List();
-          //callback.interleavedRecording(data: hhh);
-          ///r.add(cc);
-        }
-        computeDbMaxLevel(r);
-        if (interleaved) {
-          if (codec == Codec.pcm16) {
-            interleaves16(callback, r);
-          } else {
-            interleaves32(callback, r);
-          }
-        } else {
-          if (codec == Codec.pcm16) {
-            planMode16(callback, r);
-          } else {
-            planMode32(callback, r);
-          }
-        }
-        //callback.interleavedRecording(data: r[0]);
-        var c = bb[0];
-        var cc = c as Float32List;
-        //callback.interleavedRecording(data: cc);
-        //var zzz = bb as List<Float32List>;
-        //var ff = zz as List<Float32List>;
-        //var ff = bb.dartify()  as List<Float32List>;
-        //print ('mimi');
-      }
-    }
-
-    streamNode.port.onmessage = (MessageEvent e) {
-      //print('onmessage');
-      var x = e.type;
-      var y = e.origin;
-      var d = e.data;
-      var msg = d!.dartify() as Map;
-      var msgType = msg['msgType'];
-      switch (msgType) {
-        case 'RECEIVE_DATA':
-          receiveData(msg);
-          break;
-      }
-      //int inputNo = (d!.getProperty('inputNo'.toJS) as JSNumber).toDartInt;
-      //print('zozo');
-    }.toJS;
-
-    //List<t.Float32List> data = xx.getProperty('data'.toJS);
-    //print('toto');
-
-    var constrains = MediaStreamConstraints(
-      audio: true.toJS,
-      video: false.toJS,
-    );
-    //print('window.navigator.mediaDevices');
-    MediaDevices mds = window.navigator.mediaDevices;
-    var mediaStream = await mds.getUserMedia(constrains).toDart;
-    var mic = audioCtx!.createMediaStreamSource(mediaStream);
-    setOnProgress();
-    mic.connect(streamNode);
-    //mediaRecorder.start(1000);
+    await _startRecorderToStream(
+        codec: codec,
+        sampleRate: sampleRate,
+        numchannels: numChannels,
+        interleaved: interleaved);
     callback.startRecorderCompleted(RecorderState.isRecording.index, true);
   }
 
