@@ -206,8 +206,6 @@ class FlutterSoundPlugin //extends FlutterSoundPlatform
           './assets/packages/flutter_sound_web/src/flutter_sound_player.js');
       await FlutterSoundPlugin.loadScript(
           './assets/packages/flutter_sound_web/src/flutter_sound_recorder.js');
-
-      
     }
     return true;
   }

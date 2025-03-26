@@ -285,8 +285,7 @@ class FlutterSoundRecorderWeb extends FlutterSoundRecorderPlatform {
     AudioSource? audioSource,
     bool enableNoiseSuppression = false,
     bool enableEchoCancellation = true,
-
-      }) async {
+  }) async {
     _mediaRecorderWeb = null;
 
     if (toStream) {
