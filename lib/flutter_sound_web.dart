@@ -197,7 +197,6 @@ class FlutterSoundPlugin //extends FlutterSoundPlatform
   static bool _alreadyInited = false;
   static Future<bool> loadScripts() async {
     if (!_alreadyInited) {
-      _alreadyInited = true;
       //print('Loading scripts');
       await loadScript('./assets/packages/flutter_sound_web/howler/howler.js');
       await loadScript(
@@ -207,6 +206,7 @@ class FlutterSoundPlugin //extends FlutterSoundPlatform
       await FlutterSoundPlugin.loadScript(
           './assets/packages/flutter_sound_web/src/flutter_sound_recorder.js');
     }
+    _alreadyInited = true;
     return true;
   }
 
