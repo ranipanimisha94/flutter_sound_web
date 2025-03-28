@@ -265,7 +265,7 @@ class FlutterSoundPlayer {
                 //if (this.howl == null)
                 if (!this.stop()) {}
                         //this.callbackTable[CB_stopPlayerCompleted](this.callback, this.getPlayerState(), true);
-                this.status = IS_PLAYER_STOPPED; // Added because of [fs #1179]
+                this.status = IS_PLAYER_STOPPED; // Added in 10.2.5 because of [fs #1179]
                 this.callbackTable[CB_stopPlayerCompleted](this.callback,  IS_PLAYER_STOPPED, true);
                 this.callbackTable[CB_player_log](this.callback, DBG, 'JS: <--- stopPlayer');
                 return this.getPlayerState();
