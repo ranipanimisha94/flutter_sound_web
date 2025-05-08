@@ -51,6 +51,8 @@ class FlutterSoundMediaRecorderWeb {
   // The Audio Context
   AudioContext? audioCtx;
 
+  MediaStreamAudioSourceNode? mic = null;
+
   void interleaves16(
     FlutterSoundRecorderCallback callBack,
     List<t.ByteBuffer> data,
@@ -295,9 +297,9 @@ class FlutterSoundMediaRecorderWeb {
     );
     MediaDevices mds = web.window.navigator.mediaDevices;
     var mediaStream = await mds.getUserMedia(constrains).toDart;
-    var mic = audioCtx!.createMediaStreamSource(mediaStream);
+    mic = audioCtx!.createMediaStreamSource(mediaStream);
     setOnProgress();
-    mic.connect(streamNode);
+    mic?.connect(streamNode);
     //mediaRecorder.start(1000);
     callback.startRecorderCompleted(RecorderState.isRecording.index, true);
   }
@@ -322,6 +324,10 @@ class FlutterSoundMediaRecorderWeb {
     }
     await audioCtx?.close().toDart;
     audioCtx = null;
+    if(mic!=null){
+      mic?.mediaStream.getTracks().toDart.forEach((track)=>track.stop());
+      mic = null;
+    }
     //streamNode = null;
   }
 
