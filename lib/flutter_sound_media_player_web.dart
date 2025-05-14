@@ -230,12 +230,16 @@ class FlutterSoundMediaPlayerWeb {
     return 0;
   }
 
-  Future<int> pausePlayer() async {
-    return -1;
+  Future<int> pausePlayer() async {  
+    callback!.pausePlayerCompleted(2, true);
+    audioCtx?.suspend();  
+    return 2;
   }
 
   Future<int> resumePlayer() async {
-    return -1;
+    callback!.resumePlayerCompleted(1, true);
+    audioCtx?.resume();
+    return 1;
   }
 
   Future<int> setVolume({required double volume}) async {
