@@ -44,6 +44,7 @@ class FlutterSoundStreamProcessor extends AudioWorkletProcessor {
             case 'SEND_FEED_I16':
             case 'SEND_FEED_F32': me.dataList.push(data); break;
             case 'START_PLAYER': me.startPlayer(msg); break;
+            case 'CLEAR_BUFFER': me.dataList = []; break;
             //case 'STOP': this.stop(); break;
         }
     };
