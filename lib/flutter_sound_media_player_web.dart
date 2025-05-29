@@ -231,12 +231,14 @@ class FlutterSoundMediaPlayerWeb {
   }
 
   Future<int> pausePlayer() async {  
+    postMessage('CLEAR_BUFFER', null);
     callback!.pausePlayerCompleted(2, true);
     audioCtx?.suspend();  
     return 2;
   }
 
   Future<int> resumePlayer() async {
+    postMessage('CLEAR_BUFFER', null);
     callback!.resumePlayerCompleted(1, true);
     audioCtx?.resume();
     return 1;
